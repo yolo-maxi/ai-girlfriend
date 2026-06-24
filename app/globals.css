@@ -537,6 +537,8 @@ html, body {
   inset: 0;
   width: 100%;
   height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 44%, white 10%);
   border-radius: 28px;
   overflow: hidden;
@@ -576,7 +578,8 @@ html, body {
   pointer-events: none;
 }
 .swipe-portrait {
-  height: 74%;
+  min-height: 0;
+  overflow: hidden;
   background:
     radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--card-accent, var(--accent)) 35%, transparent), transparent),
     rgba(0, 0, 0, 0.25);
@@ -586,14 +589,19 @@ html, body {
 .swipe-portrait img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center bottom;
+  padding: 8px 8px 0;
   pointer-events: none;
 }
 .swipe-emoji { font-size: 5rem; }
 .swipe-meta {
-  min-height: 26%;
+  position: relative;
+  z-index: 2;
+  min-height: 0;
   padding: 18px 18px 20px;
-  background: linear-gradient(180deg, rgba(12, 6, 25, 0.74), rgba(12, 6, 25, 0.96));
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(12, 6, 25, 0.9), rgba(12, 6, 25, 0.98));
 }
 .swipe-meta h2 {
   margin: 0;
@@ -681,15 +689,25 @@ html, body {
   .cat-head { margin-bottom: 14px; }
   .cat-head h1 { font-size: 1.35rem; }
   .cat-head p { font-size: 0.82rem; }
-  .swipe-shell { width: min(72vw, 280px); gap: 14px; }
+  .swipe-shell { width: min(82vw, 320px); gap: 14px; }
   .swipe-stack { max-height: 62dvh; }
   .swipe-card { border-radius: 24px; }
-  .swipe-portrait { height: 66%; }
-  .swipe-meta { min-height: 34%; padding: 12px 12px 14px; }
+  .swipe-meta { padding: 12px 12px 14px; }
   .swipe-meta h2 { font-size: 1.3rem; }
   .swipe-meta p { font-size: 0.76rem; }
   .swipe-meta .swipe-quote { margin-top: 6px; font-size: 0.72rem; }
   .swipe-action { width: 54px; height: 54px; }
+}
+
+@media (max-height: 620px) {
+  .catalogue { padding-top: 10px; }
+  .cat-head { margin: 0 0 8px; }
+  .cat-head h1 { font-size: 1.25rem; }
+  .cat-head p,
+  .swipe-meta .swipe-quote { display: none; }
+  .swipe-shell { gap: 10px; }
+  .swipe-meta { padding: 10px 12px 12px; }
+  .swipe-meta h2 { font-size: 1.2rem; }
 }
 
 /* ---------- Back to catalogue ---------- */
