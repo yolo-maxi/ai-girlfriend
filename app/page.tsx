@@ -56,10 +56,6 @@ const CHARACTER_OPENERS: Record<string, string[]> = {
     "mmm. you're here. I was almost productive, which would have been tragic. what happened?",
     "I brought blanket energy and one functioning brain cell. what are we using it for?",
   ],
-  kaede: [
-    "you're late by my entirely imaginary standards. explain yourself elegantly.",
-    "I have notes, opinions, and a suspicious amount of patience. what's the situation?",
-  ],
 };
 
 const MAX_NUDGES = 1;
@@ -75,7 +71,6 @@ const SILLY_QUOTES: Record<string, string> = {
   mei: '"I did not knock that glass over. gravity did."',
   shizuku: '"My parasol is for shade and emotional distance."',
   hina: '"Emotionally available after a 14-hour nap."',
-  kaede: '"I made a rubric for your flirting. It is strict."',
 };
 
 const RIZZ_EXAMPLES = [
