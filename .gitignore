@@ -3,3 +3,8 @@ node_modules/
 .env*.local
 .env
 *.log
+
+# secret backups
+*.env.local.bak.*
+.env.local.bak.*
+tsconfig.tsbuildinfo

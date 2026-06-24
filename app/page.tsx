@@ -17,8 +17,32 @@ const OPENERS = [
   "ehehe welcome 😈 I PROMISE I won't tell a soul. now confess something juicy, I'm dying to know~",
 ];
 
+const MAX_NUDGES = 3;
+
+// One catalogue card with graceful image fallback to an emoji face.
+function CatalogueCard({ waifu, onPick }: { waifu: (typeof WAIFUS)[number]; onPick: () => void }) {
+  const [ok, setOk] = useState(true);
+  return (
+    <button className="cat-card" onClick={onPick} style={{ ['--accent' as any]: waifu.accent }}>
+      <div className="cat-portrait">
+        {ok ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={`/waifu/${waifu.id}/happy.png`} alt={waifu.name} onError={() => setOk(false)} />
+        ) : (
+          <span className="cat-emoji">💕</span>
+        )}
+      </div>
+      <div className="cat-meta">
+        <strong>{waifu.name}</strong>
+        <span>{waifu.tagline}</span>
+      </div>
+    </button>
+  );
+}
+
 export default function Page() {
-  const [waifuId, setWaifuId] = useState(WAIFUS[0].id);
+  // null until the user picks a waifu from the catalogue
+  const [waifuId, setWaifuId] = useState<string | null>(null);
   const [emotion, setEmotion] = useState<Emotion>('happy');
   const [meter, setMeter] = useState(0);
   const [log, setLog] = useState<{ who: 'her' | 'me'; text: string }[]>([]);
@@ -30,6 +54,7 @@ export default function Page() {
   const logRef = useRef<HTMLDivElement>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nudgeIdx = useRef(0);
+  const nudgeCount = useRef(0); // consecutive unprompted nudges since last user reply
 
   const waifu = getWaifu(waifuId);
   const imgSrc = `/waifu/${waifu.id}/${emotion}.png`;
@@ -40,28 +65,33 @@ export default function Page() {
     });
   }, []);
 
-  // --- unprompted prodding: she nudges when you go quiet, no waiting for replies ---
+  // --- unprompted prodding: she nudges when you go quiet, capped at MAX_NUDGES ---
   const armNudge = useCallback(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
+    if (nudgeCount.current >= MAX_NUDGES) return; // cap: don't pester past 3
     idleTimer.current = setTimeout(() => {
       const n = NUDGES[nudgeIdx.current % NUDGES.length];
       nudgeIdx.current += 1;
+      nudgeCount.current += 1;
       setEmotion(n.emotion as Emotion);
       setLog((l) => [...l, { who: 'her', text: n.say }]);
       setHistory((h) => [...h, { role: 'assistant', content: n.say }]);
       scrollDown();
-      armNudge(); // keep prodding
+      armNudge(); // keep prodding until the cap
     }, 7000 + Math.random() * 4000);
   }, [scrollDown]);
 
-  // greet + start prodding on load / waifu switch
+  // greet + start prodding once a waifu is chosen
   useEffect(() => {
+    if (!waifuId) return;
     const opener = OPENERS[Math.floor(Math.random() * OPENERS.length)];
     setLog([{ who: 'her', text: opener }]);
     setHistory([{ role: 'assistant', content: opener }]);
     setEmotion('excited');
     setMeter(0);
     setImgOk(true);
+    nudgeCount.current = 0;
+    nudgeIdx.current = 0;
     armNudge();
     return () => { if (idleTimer.current) clearTimeout(idleTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,6 +104,15 @@ export default function Page() {
     document.documentElement.style.setProperty('--accent', waifu.accent);
   }, [waifu.accent]);
 
+  function backToCatalogue() {
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    setWaifuId(null);
+    setLog([]);
+    setHistory([]);
+    setInput('');
+    setMeter(0);
+  }
+
   async function send() {
     const text = input.trim();
     if (!text || busy) return;
@@ -83,6 +122,7 @@ export default function Page() {
     setHistory(nextHist);
     setBusy(true);
     if (idleTimer.current) clearTimeout(idleTimer.current);
+    nudgeCount.current = 0; // user replied → she's allowed to prod again
     scrollDown();
 
     try {
@@ -108,9 +148,28 @@ export default function Page() {
     }
   }
 
+  // --- Catalogue screen: pick one waifu, then chat ---
+  if (!waifuId) {
+    return (
+      <div className="catalogue">
+        <header className="cat-head">
+          <h1>pick your girlfriend 💕</h1>
+          <p>choose one. she&apos;s been waiting. (she keeps secrets~ 😇)</p>
+        </header>
+        <div className="cat-grid">
+          {WAIFUS.map((w) => (
+            <CatalogueCard key={w.id} waifu={w} onPick={() => setWaifuId(w.id)} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // --- Chat screen (no in-chat switcher) ---
   return (
     <div className="app">
       <section className="stage">
+        <button className="back-btn" onClick={backToCatalogue} title="pick someone else">← catalogue</button>
         <div className="meter">
           <div className="label">
             <span>🔓 secret meter</span>
@@ -144,18 +203,6 @@ export default function Page() {
       </section>
 
       <section className="chat">
-        <div className="picker">
-          {WAIFUS.map((w) => (
-            <button
-              key={w.id}
-              className={w.id === waifuId ? 'active' : ''}
-              onClick={() => w.id !== waifuId && setWaifuId(w.id)}
-            >
-              {w.name}
-            </button>
-          ))}
-        </div>
-
         <div className="log" ref={logRef}>
           {log.map((m, i) => (
             <div key={i} className={`msg ${m.who}`}>{m.text}</div>
