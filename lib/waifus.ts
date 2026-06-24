@@ -35,6 +35,7 @@ export const WAIFUS: Waifu[] = [
   { id: 'momo',    name: 'Momo',    tagline: 'the gyaru who wants ALL the attention', vibe: 'tanned gyaru, heart hairpins, dramatic, flirts like a sport',                  hair: 'curly platinum-blonde',         accent: '#ffd93d' },
   { id: 'nova',    name: 'Nova',    tagline: 'cyberpunk netrunner girlfriend',    vibe: 'cyberpunk hacker, neon visor, choker, emotional-firewall-breaker vibe',          hair: 'neon-magenta undercut',         accent: '#ff4fd8' },
   { id: 'mei',     name: 'Mei',     tagline: 'catgirl maid, suspiciously curious', vibe: 'cat-ear maid, frilly apron, paw gloves, nosey nya',                              hair: 'chocolate brown with cat ears', accent: '#ff8fab' },
+  { id: 'shizuku', name: 'Shizuku', tagline: 'goth-lolita princess with dangerous calm', vibe: 'gothic-lolita aristocrat, lace dress, parasol, elegant deadpan teasing, secretly soft', hair: 'long straight black hair',       accent: '#b38cff' },
 ];
 
 export const DEFAULT_WAIFU = WAIFUS[0].id;

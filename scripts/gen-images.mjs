@@ -24,7 +24,7 @@ const FORCE = process.argv.includes('--force');
 const onlyIds = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 
 // --- mirror lib/waifus.ts (kept in sync manually) ---
-const EMOTIONS = ['neutral','happy','excited','blush','sad','angry','jealous','surprised','pleading','smug'];
+const EMOTIONS = ['neutral','happy','excited','blush','sad','angry','jealous','surprised','pleading','smug','sexy','playful_kiss'];
 const EMOTION_FACE = {
   neutral: 'calm neutral expression, relaxed',
   happy: 'warm happy smile, sparkling eyes',
@@ -36,6 +36,8 @@ const EMOTION_FACE = {
   surprised: 'shocked surprised face, raised eyebrows, mouth agape',
   pleading: 'pleading begging puppy-dog eyes, hands clasped, kawaii',
   smug: 'mischievous smug smirk, half-lidded knowing eyes, devious',
+  sexy: 'tasteful flirty expression, confident alluring smile, half-lidded eyes, romantic tension, SFW',
+  playful_kiss: 'cute teasing blowing-a-kiss pose, wink, puckered lips, playful romantic energy, SFW',
 };
 const WAIFUS = [
   { id:'yumi', desc:'cute anime girl with long pink twin-tails, oversized pastel sweater, schoolgirl' },

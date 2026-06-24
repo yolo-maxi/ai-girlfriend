@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, type PointerEvent } from 'react';
 import { WAIFUS, getWaifu, Emotion } from '@/lib/waifus';
 import { NUDGES } from '@/lib/personality';
 
@@ -48,9 +48,24 @@ const CHARACTER_OPENERS: Record<string, string[]> = {
     "welcome home, nya. did the outside world behave, or do I need to judge it for you?",
     "I made myself useful by waiting cutely. what should I be nosy about first?",
   ],
+  shizuku: [
+    "you kept a lady waiting. charmingly rude. what excuse are you offering me?",
+    "there you are. tell me whether today's drama deserves sympathy, judgment, or a dramatic sigh.",
+  ],
 };
 
 const MAX_NUDGES = 1;
+const SWIPE_ANIM_MS = 220;
+const SWIPE_COOLDOWN_MS = 520;
+
+const SILLY_QUOTES: Record<string, string> = {
+  yumi: '"I packed snacks for our fake emergency."',
+  rei: '"I know three facts and two are classified."',
+  akari: '"Bad ideas are just ideas with cardio."',
+  momo: '"If drama paid rent I would own a duplex."',
+  nova: '"Emotionally unavailable, but with good uptime."',
+  mei: '"I did not knock that glass over. gravity did."',
+};
 
 const VAULT_TIERS = [
   {
@@ -76,9 +91,9 @@ const VAULT_TIERS = [
   },
   {
     min: 100,
-    title: 'Barrier broken',
-    copy: 'Reward scene unlocked. She is trying and failing to be normal.',
-    icon: '💌',
+    title: 'Won over',
+    copy: 'Final barrier broken. Kiss scene unlocked.',
+    icon: '💋',
     className: 'vault-open',
   },
 ];
@@ -87,30 +102,11 @@ function vaultTier(meter: number) {
   return [...VAULT_TIERS].reverse().find((tier) => meter >= tier.min) || VAULT_TIERS[0];
 }
 
-function pickOpener(waifu: (typeof WAIFUS)[number]) {
+type Waifu = (typeof WAIFUS)[number];
+
+function pickOpener(waifu: Waifu) {
   const pool = [...BASE_OPENERS, ...(CHARACTER_OPENERS[waifu.id] || [])];
   return pool[Math.floor(Math.random() * pool.length)];
-}
-
-// One catalogue card with graceful image fallback to an emoji face.
-function CatalogueCard({ waifu, onPick }: { waifu: (typeof WAIFUS)[number]; onPick: () => void }) {
-  const [ok, setOk] = useState(true);
-  return (
-    <button className="cat-card" onClick={onPick} style={{ ['--accent' as any]: waifu.accent }}>
-      <div className="cat-portrait">
-        {ok ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={`/waifu/${waifu.id}/happy.png`} alt={waifu.name} onError={() => setOk(false)} />
-        ) : (
-          <span className="cat-emoji">💕</span>
-        )}
-      </div>
-      <div className="cat-meta">
-        <strong>{waifu.name}</strong>
-        <span>{waifu.tagline}</span>
-      </div>
-    </button>
-  );
 }
 
 export default function Page() {
@@ -125,13 +121,21 @@ export default function Page() {
   const [imgOk, setImgOk] = useState(true);
   const [vaultUnlocked, setVaultUnlocked] = useState(false);
   const [rewardOpen, setRewardOpen] = useState(false);
+  const [deckIndex, setDeckIndex] = useState(0);
+  const [deckImgOk, setDeckImgOk] = useState(true);
+  const [dragX, setDragX] = useState(0);
+  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
 
   const logRef = useRef<HTMLDivElement>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nudgeIdx = useRef(0);
   const nudgeCount = useRef(0); // consecutive unprompted nudges since last user reply
+  const dragStartX = useRef<number | null>(null);
+  const dragXRef = useRef(0);
+  const deckLockedUntil = useRef(0);
 
   const waifu = getWaifu(waifuId);
+  const deckWaifu = WAIFUS[deckIndex % WAIFUS.length];
   const imgSrc = `/waifu/${waifu.id}/${emotion}.png`;
   const tier = vaultTier(meter);
 
@@ -186,6 +190,64 @@ export default function Page() {
     setImgOk(true);
   }, [imgSrc]);
 
+  useEffect(() => {
+    setDeckImgOk(true);
+  }, [deckWaifu.id]);
+
+  function setDeckDrag(x: number) {
+    dragXRef.current = x;
+    setDragX(x);
+  }
+
+  function beginDeckAction() {
+    const now = Date.now();
+    if (swipeDir || now < deckLockedUntil.current) return false;
+    deckLockedUntil.current = now + SWIPE_COOLDOWN_MS;
+    return true;
+  }
+
+  function passCard() {
+    if (!beginDeckAction()) return;
+    setSwipeDir('left');
+    window.setTimeout(() => {
+      setDeckIndex((i) => (i + 1) % WAIFUS.length);
+      setDeckDrag(0);
+      setSwipeDir(null);
+    }, SWIPE_ANIM_MS);
+  }
+
+  function pickCard() {
+    if (!beginDeckAction()) return;
+    setSwipeDir('right');
+    window.setTimeout(() => {
+      setWaifuId(deckWaifu.id);
+      setDeckDrag(0);
+      setSwipeDir(null);
+    }, SWIPE_ANIM_MS);
+  }
+
+  function onCardPointerDown(e: PointerEvent<HTMLDivElement>) {
+    if (swipeDir || Date.now() < deckLockedUntil.current) return;
+    dragStartX.current = e.clientX;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function onCardPointerMove(e: PointerEvent<HTMLDivElement>) {
+    if (dragStartX.current == null || swipeDir) return;
+    const nextX = Math.max(-140, Math.min(140, e.clientX - dragStartX.current));
+    setDeckDrag(nextX);
+  }
+
+  function onCardPointerUp(e: PointerEvent<HTMLDivElement>) {
+    if (dragStartX.current == null) return;
+    dragStartX.current = null;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    const finalX = dragXRef.current;
+    if (finalX > 86) pickCard();
+    else if (finalX < -86) passCard();
+    else setDeckDrag(0);
+  }
+
   function backToCatalogue() {
     if (idleTimer.current) clearTimeout(idleTimer.current);
     setWaifuId(null);
@@ -199,10 +261,10 @@ export default function Page() {
 
   function unlockVault() {
     if (vaultUnlocked) return;
-    const reward = `${waifu.name}'s last barrier broke 💌 reward unlocked: she admits your rizz worked and gets 20% more insufferably attached.`;
+    const reward = `${waifu.name}'s last barrier broke 💋 kiss scene unlocked: she stops pretending your rizz isn't working.`;
     setVaultUnlocked(true);
     setRewardOpen(true);
-    setEmotion('excited');
+    setEmotion('sexy');
     setLog((l) => [...l, { who: 'her', text: reward }]);
     setHistory((h) => [...h, { role: 'assistant', content: reward }]);
   }
@@ -246,16 +308,52 @@ export default function Page() {
 
   // --- Catalogue screen: pick one waifu, then chat ---
   if (!waifuId) {
+    const cardTransform = swipeDir === 'right'
+      ? 'translateX(115vw) rotate(16deg)'
+      : swipeDir === 'left'
+        ? 'translateX(-115vw) rotate(-16deg)'
+        : `translateX(${dragX}px) rotate(${dragX / 18}deg)`;
+
     return (
-      <div className="catalogue">
+      <div className="catalogue" style={{ ['--accent' as any]: deckWaifu.accent }}>
         <header className="cat-head">
           <h1>pick your girlfriend 💕</h1>
-          <p>choose one. then try to rizz past her defenses.</p>
+          <p>find the one whose defenses you want to ruin.</p>
         </header>
-        <div className="cat-grid">
-          {WAIFUS.map((w) => (
-            <CatalogueCard key={w.id} waifu={w} onPick={() => setWaifuId(w.id)} />
-          ))}
+
+        <div className="swipe-shell">
+          <div
+            className={`swipe-card ${swipeDir ? `is-${swipeDir}` : ''} ${dragX > 35 ? 'show-pick' : ''} ${dragX < -35 ? 'show-pass' : ''}`}
+            style={{ transform: cardTransform }}
+            onPointerDown={onCardPointerDown}
+            onPointerMove={onCardPointerMove}
+            onPointerUp={onCardPointerUp}
+            onPointerCancel={() => {
+              dragStartX.current = null;
+              setDeckDrag(0);
+            }}
+          >
+            <span className="swipe-stamp pick">rizz</span>
+            <span className="swipe-stamp pass">next</span>
+            <div className="swipe-portrait">
+              {deckImgOk ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`/waifu/${deckWaifu.id}/happy.png`} alt={deckWaifu.name} onError={() => setDeckImgOk(false)} />
+              ) : (
+                <span className="swipe-emoji">💕</span>
+              )}
+            </div>
+            <div className="swipe-meta">
+              <h2>{deckWaifu.name}</h2>
+              <p>{deckWaifu.tagline}</p>
+              <p className="swipe-quote">{SILLY_QUOTES[deckWaifu.id]}</p>
+            </div>
+          </div>
+
+          <div className="swipe-actions">
+            <button className="swipe-action pass" onClick={passCard} disabled={!!swipeDir} title="pass" aria-label="pass">×</button>
+            <button className="swipe-action pick" onClick={pickCard} disabled={!!swipeDir} title="pick" aria-label="pick">♥</button>
+          </div>
         </div>
       </div>
     );
@@ -277,7 +375,7 @@ export default function Page() {
 
         {vaultUnlocked && (
           <button className="vault-keepsake" onClick={() => setRewardOpen(true)}>
-            💌 rizz reward unlocked
+            💋 kiss scene unlocked
           </button>
         )}
 
@@ -311,11 +409,15 @@ export default function Page() {
             <span>✦</span><span>♡</span><span>✧</span><span>💌</span><span>✦</span>
           </div>
           <div className="reward-panel">
-            <p className="reward-kicker">rizz barrier</p>
-            <h2 id="reward-title">Unlocked with {waifu.name}</h2>
+            <p className="reward-kicker">won over</p>
+            <h2 id="reward-title">Kiss scene with {waifu.name}</h2>
+            <div className="reward-portrait">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/waifu/${waifu.id}/playful_kiss.png`} alt={`${waifu.name} kiss reward`} />
+            </div>
             <p>
-              She tries to play it cool, fails instantly, and writes your name in a tiny heart
-              before pretending that definitely did not happen.
+              She tries to play it cool, fails instantly, and lets the flirty version of her
+              take over for the rest of the chat.
             </p>
             <button onClick={() => setRewardOpen(false)}>keep chatting</button>
           </div>

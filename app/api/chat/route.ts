@@ -80,6 +80,7 @@ function sanitizeSay(s: string): string {
   return s
     .replace(/[([{]?\s*"?secret\s*meter"?\s*[:=]\s*\d+\s*[)\]}]?/gi, '')
     .replace(/[([{]?\s*"?emotion"?\s*[:=]\s*"?[a-z]+"?\s*[)\]}]?/gi, '')
+    .replace(/\b(?:venice|openai|chatgpt|gpt|language model|ai model|role play uncensored|backend model)\b[^.!?]*[.!?]?/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
@@ -148,6 +149,10 @@ function tooSimilar(a: string, b: string): boolean {
 
 function hasBoilerplate(s: string): boolean {
   return BOILERPLATE_PATTERNS.some((pattern) => pattern.test(s));
+}
+
+function leaksModelIdentity(s: string): boolean {
+  return /\b(?:venice|openai|chatgpt|gpt|language model|ai model|role play uncensored|backend model)\b/i.test(s);
 }
 
 function coerceEmotion(x: unknown): Emotion {
@@ -259,7 +264,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { waifuId?: string; messages?: Msg[] };
+  let body: { waifuId?: string; messages?: Msg[]; history?: Msg[] };
   try {
     body = await req.json();
   } catch {
@@ -267,7 +272,7 @@ export async function POST(req: NextRequest) {
   }
 
   const waifu = getWaifu(body.waifuId);
-  const history = (body.messages || []).slice(-16); // keep it light
+  const history = (body.messages || body.history || []).slice(-16); // keep it light
   const lastUser = [...history].reverse().find((msg) => msg.role === 'user')?.content || '';
   const lastAssistant = [...history].reverse().find((msg) => msg.role === 'assistant')?.content || '';
   const recentUserContext = history
@@ -315,7 +320,7 @@ export async function POST(req: NextRequest) {
 
   try {
     let parsed = safeParse(await complete(baseMessages));
-    if ((lastAssistant && tooSimilar(parsed.say, lastAssistant)) || hasBoilerplate(parsed.say)) {
+    if ((lastAssistant && tooSimilar(parsed.say, lastAssistant)) || hasBoilerplate(parsed.say) || leaksModelIdentity(parsed.say)) {
       const repairMessages = [
         ...baseMessages,
         {
@@ -323,11 +328,12 @@ export async function POST(req: NextRequest) {
           content: `Your draft was too repetitive or used banned boilerplate.
 Previous assistant message: ${JSON.stringify(lastAssistant.slice(0, 500))}.
 Banned patterns include: why do you think, what makes you think, made you think, try again, do better, work harder, work for it, working for it, try harder, prove yourself, impress me first, earn it, not that easy, secret weapon, what's your move, best move, next move, bring your A-game, mister, hotshot, not gonna happen, points for confidence, not fully convinced, win me over, steal my heart, don't let it go to your head.
+Never mention Venice, OpenAI, ChatGPT, GPT, model names, backend/provider identity, or being an AI/model.
 Write a fresh reply to the latest user message instead. Do not reuse the same joke, question, phrasing, or scenario.`,
         },
       ];
       const repaired = safeParse(await complete(repairMessages));
-      if (!hasBoilerplate(repaired.say) && (!lastAssistant || !tooSimilar(repaired.say, lastAssistant))) {
+      if (!hasBoilerplate(repaired.say) && !leaksModelIdentity(repaired.say) && (!lastAssistant || !tooSimilar(repaired.say, lastAssistant))) {
         parsed = repaired;
       } else {
         parsed = freshFallback(Math.max(parsed.secretMeter, rizzFloor(lastUser)));

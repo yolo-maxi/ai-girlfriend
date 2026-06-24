@@ -287,65 +287,204 @@ html, body {
 
 /* ---------- Catalogue (pick-your-girlfriend) ---------- */
 .catalogue {
+  position: relative;
+  isolation: isolate;
   height: 100dvh;
-  max-width: 1100px;
+  max-width: 620px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: 24px 18px 32px;
-  overflow-y: auto;
+  align-items: center;
+  padding: 24px 18px 28px;
+  overflow: hidden;
 }
-.cat-head { text-align: center; margin: 8px 0 20px; }
+.catalogue::before,
+.catalogue::after {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.58) 0 1px, transparent 1.4px),
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 65%, white 10%) 0 1px, transparent 1.6px);
+  background-size: 74px 74px, 118px 118px;
+  background-position: 0 0, 32px 48px;
+  opacity: 0.32;
+  animation: starDrift 26s linear infinite;
+}
+.catalogue::after {
+  background-size: 96px 96px, 146px 146px;
+  background-position: 18px 22px, 80px 10px;
+  opacity: 0.2;
+  animation: starDriftSlow 38s linear infinite;
+}
+@keyframes starDrift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(74px, -74px, 0); }
+}
+@keyframes starDriftSlow {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-96px, -96px, 0); }
+}
+.cat-head { text-align: center; margin: 8px 0 18px; }
 .cat-head h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-size: clamp(1.55rem, 4vw, 2.35rem);
   background: linear-gradient(90deg, #ff7eb6, #ff4fd8, #6ec1ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .cat-head p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
-.cat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 14px;
-}
-@media (max-width: 520px) {
-  .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-}
-.cat-card {
+.swipe-shell {
+  position: relative;
+  width: min(86vw, 390px);
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  text-align: left;
-  padding: 0;
-  border-radius: 18px;
-  overflow: hidden;
-  border: 1px solid var(--panel-br);
-  background: var(--panel);
-  color: var(--text);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
 }
-.cat-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--accent);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--accent) inset;
-}
-.cat-portrait {
+.swipe-card {
   position: relative;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  aspect-ratio: 0.74;
+  max-height: min(66dvh, 540px);
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, white 10%);
+  border-radius: 28px;
+  overflow: hidden;
+  color: var(--text);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 45%),
+    rgba(255, 255, 255, 0.07);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  transition: transform 0.17s ease, border-color 0.17s ease, box-shadow 0.17s ease;
+}
+.swipe-card:active { cursor: grabbing; }
+.swipe-card.is-left,
+.swipe-card.is-right {
+  transition: transform 0.17s ease-in, opacity 0.17s ease-in;
+  opacity: 0.78;
+  pointer-events: none;
+}
+.swipe-portrait {
+  height: 74%;
   background:
     radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 35%, transparent), transparent),
     rgba(0, 0, 0, 0.25);
+  display: grid;
+  place-items: center;
+}
+.swipe-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.swipe-emoji { font-size: 5rem; }
+.swipe-meta {
+  min-height: 26%;
+  padding: 18px 18px 20px;
+  background: linear-gradient(180deg, rgba(12, 6, 25, 0.74), rgba(12, 6, 25, 0.96));
+}
+.swipe-meta h2 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+.swipe-meta p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  line-height: 1.25;
+  font-size: 0.88rem;
+}
+.swipe-meta .swipe-quote {
+  margin-top: 10px;
+  color: color-mix(in srgb, var(--accent) 60%, white 30%);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.swipe-stamp {
+  position: absolute;
+  top: 22px;
+  z-index: 2;
+  padding: 7px 13px;
+  border: 3px solid currentColor;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: rotate(-14deg);
+  transition: opacity 0.12s ease;
+}
+.swipe-stamp.pick {
+  left: 20px;
+  color: #8dffcb;
+}
+.swipe-stamp.pass {
+  right: 20px;
+  color: #ff8fab;
+  transform: rotate(14deg);
+}
+.swipe-card.show-pick .swipe-stamp.pick,
+.swipe-card.show-pass .swipe-stamp.pass {
+  opacity: 0.92;
+}
+.swipe-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 18px;
 }
-.cat-portrait img { width: 100%; height: 100%; object-fit: cover; }
-.cat-emoji { font-size: 3rem; }
-.cat-meta { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 2px; }
-.cat-meta strong { font-size: 1rem; }
-.cat-meta span { font-size: 0.76rem; color: var(--muted); line-height: 1.25; }
+.swipe-action {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-br);
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.34);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.swipe-action:hover {
+  transform: translateY(-2px);
+}
+.swipe-action:disabled {
+  opacity: 0.48;
+  cursor: default;
+  transform: none;
+}
+.swipe-action.pass {
+  color: #ff8fab;
+}
+.swipe-action.pick {
+  color: #8dffcb;
+  border-color: color-mix(in srgb, var(--accent) 55%, white 15%);
+  background: color-mix(in srgb, var(--accent) 18%, rgba(0, 0, 0, 0.34));
+}
+
+@media (max-width: 520px) {
+  .catalogue { padding: 18px 14px 22px; }
+  .cat-head { margin-bottom: 14px; }
+  .cat-head p { font-size: 0.82rem; }
+  .swipe-shell { width: min(92vw, 360px); gap: 14px; }
+  .swipe-card { max-height: 62dvh; border-radius: 24px; }
+  .swipe-meta { padding: 14px 14px 16px; }
+  .swipe-meta h2 { font-size: 1.45rem; }
+  .swipe-meta p { font-size: 0.8rem; }
+  .swipe-action { width: 54px; height: 54px; }
+}
 
 /* ---------- Back to catalogue ---------- */
 .back-btn {
@@ -400,6 +539,22 @@ html, body {
 .reward-panel h2 {
   margin: 0;
   font-size: 1.55rem;
+}
+.reward-portrait {
+  width: min(260px, 70vw);
+  aspect-ratio: 1;
+  margin: 14px auto 10px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, white 18%);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 28px rgba(255, 255, 255, 0.06);
+}
+.reward-portrait img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 .reward-panel p:not(.reward-kicker) {
   margin: 10px 0 18px;
