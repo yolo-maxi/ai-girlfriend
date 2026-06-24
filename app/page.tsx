@@ -121,6 +121,11 @@ function vaultTier(meter: number) {
 }
 
 type Waifu = (typeof WAIFUS)[number];
+type ExitingCard = {
+  index: number;
+  dir: 'left' | 'right';
+  dragX: number;
+};
 
 function pickOpener(waifu: Waifu) {
   const pool = [...BASE_OPENERS, ...(CHARACTER_OPENERS[waifu.id] || [])];
@@ -192,7 +197,7 @@ export default function Page() {
   const [rewardOpen, setRewardOpen] = useState(false);
   const [deckIndex, setDeckIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
-  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
+  const [exitingCard, setExitingCard] = useState<ExitingCard | null>(null);
 
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -206,6 +211,7 @@ export default function Page() {
   const waifu = getWaifu(waifuId);
   const deckWaifu = WAIFUS[deckIndex % WAIFUS.length];
   const nextDeckWaifu = WAIFUS[(deckIndex + 1) % WAIFUS.length];
+  const deckBusy = !!exitingCard;
   const imgSrc = `/waifu/${waifu.id}/${emotion}.png`;
   const tier = vaultTier(meter);
 
@@ -267,39 +273,45 @@ export default function Page() {
 
   function beginDeckAction() {
     const now = Date.now();
-    if (swipeDir || now < deckLockedUntil.current) return false;
+    if (deckBusy || now < deckLockedUntil.current) return false;
     deckLockedUntil.current = now + SWIPE_COOLDOWN_MS;
     return true;
   }
 
   function passCard() {
     if (!beginDeckAction()) return;
-    setSwipeDir('left');
+    const currentIndex = deckIndex;
+    const exitX = dragXRef.current;
+    setExitingCard({ index: currentIndex, dir: 'left', dragX: exitX });
+    setDeckIndex((i) => (i + 1) % WAIFUS.length);
+    setDeckDrag(0);
     window.setTimeout(() => {
-      setDeckIndex((i) => (i + 1) % WAIFUS.length);
-      setDeckDrag(0);
-      setSwipeDir(null);
+      setExitingCard(null);
     }, SWIPE_ANIM_MS);
   }
 
   function pickCard() {
     if (!beginDeckAction()) return;
-    setSwipeDir('right');
+    const currentIndex = deckIndex;
+    const pickedWaifu = deckWaifu;
+    const exitX = dragXRef.current;
+    setExitingCard({ index: currentIndex, dir: 'right', dragX: exitX });
+    setDeckIndex((i) => (i + 1) % WAIFUS.length);
+    setDeckDrag(0);
     window.setTimeout(() => {
-      setWaifuId(deckWaifu.id);
-      setDeckDrag(0);
-      setSwipeDir(null);
+      setWaifuId(pickedWaifu.id);
+      setExitingCard(null);
     }, SWIPE_ANIM_MS);
   }
 
   function onCardPointerDown(e: PointerEvent<HTMLDivElement>) {
-    if (swipeDir || Date.now() < deckLockedUntil.current) return;
+    if (deckBusy || Date.now() < deckLockedUntil.current) return;
     dragStartX.current = e.clientX;
     e.currentTarget.setPointerCapture(e.pointerId);
   }
 
   function onCardPointerMove(e: PointerEvent<HTMLDivElement>) {
-    if (dragStartX.current == null || swipeDir) return;
+    if (dragStartX.current == null || deckBusy) return;
     const nextX = Math.max(-140, Math.min(140, e.clientX - dragStartX.current));
     setDeckDrag(nextX);
   }
@@ -379,11 +391,11 @@ export default function Page() {
 
   // --- Catalogue screen: pick one waifu, then chat ---
   if (!waifuId) {
-    const cardTransform = swipeDir === 'right'
-      ? 'translateX(115vw) rotate(16deg)'
-      : swipeDir === 'left'
-        ? 'translateX(-115vw) rotate(-16deg)'
-        : `translateX(${dragX}px) rotate(${dragX / 18}deg)`;
+    const frontTransform = `translateX(${dragX}px) rotate(${dragX / 18}deg)`;
+    const exitingWaifu = exitingCard ? WAIFUS[exitingCard.index % WAIFUS.length] : null;
+    const exitingTransform = exitingCard?.dir === 'right'
+      ? `translateX(115vw) rotate(${Math.max(16, exitingCard.dragX / 12)}deg)`
+      : `translateX(-115vw) rotate(${Math.min(-16, exitingCard ? exitingCard.dragX / 12 : -16)}deg)`;
 
     return (
       <div className="catalogue" style={{ ['--accent' as any]: deckWaifu.accent }}>
@@ -394,12 +406,12 @@ export default function Page() {
 
         <div className="swipe-shell">
           <div className="swipe-stack">
-            <SwipeCard waifu={nextDeckWaifu} className="swipe-card-back" />
+            {!exitingCard && <SwipeCard waifu={nextDeckWaifu} className="swipe-card-back" />}
             <SwipeCard
               waifu={deckWaifu}
-              className={`swipe-card-front ${swipeDir ? `is-${swipeDir}` : ''}`}
-              style={{ transform: cardTransform }}
-              interactive
+              className={exitingCard ? 'swipe-card-ready' : 'swipe-card-front'}
+              style={{ transform: exitingCard ? undefined : frontTransform }}
+              interactive={!exitingCard}
               showPick={dragX > 35}
               showPass={dragX < -35}
               onPointerDown={onCardPointerDown}
@@ -410,11 +422,20 @@ export default function Page() {
                 setDeckDrag(0);
               }}
             />
+            {exitingCard && exitingWaifu && (
+              <SwipeCard
+                waifu={exitingWaifu}
+                className={`swipe-card-front swipe-card-exiting is-${exitingCard.dir}`}
+                style={{ transform: exitingTransform }}
+                showPick={exitingCard.dir === 'right'}
+                showPass={exitingCard.dir === 'left'}
+              />
+            )}
           </div>
 
           <div className="swipe-actions">
-            <button className="swipe-action pass" onClick={passCard} disabled={!!swipeDir} title="pass" aria-label="pass">×</button>
-            <button className="swipe-action pick" onClick={pickCard} disabled={!!swipeDir} title="pick" aria-label="pick">♥</button>
+            <button className="swipe-action pass" onClick={passCard} disabled={deckBusy} title="pass" aria-label="pass">×</button>
+            <button className="swipe-action pick" onClick={pickCard} disabled={deckBusy} title="pick" aria-label="pick">♥</button>
           </div>
         </div>
       </div>

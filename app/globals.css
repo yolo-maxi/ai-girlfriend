@@ -561,6 +561,14 @@ html, body {
   opacity: 0.76;
   filter: saturate(0.9) brightness(0.88);
 }
+.swipe-card-ready {
+  z-index: 1;
+  pointer-events: none;
+  transform: translateY(0) scale(1);
+}
+.swipe-card-exiting {
+  z-index: 3;
+}
 .swipe-card-front.is-left,
 .swipe-card-front.is-right {
   transition: transform 0.17s ease-in, opacity 0.17s ease-in;
