@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, useCallback, type CSSProperties, type PointerEvent } from 'react';
 import { WAIFUS, getWaifu, Emotion } from '@/lib/waifus';
 import { NUDGES } from '@/lib/personality';
 
@@ -65,6 +65,7 @@ const SILLY_QUOTES: Record<string, string> = {
   momo: '"If drama paid rent I would own a duplex."',
   nova: '"Emotionally unavailable, but with good uptime."',
   mei: '"I did not knock that glass over. gravity did."',
+  shizuku: '"My parasol is for shade and emotional distance."',
 };
 
 const VAULT_TIERS = [
@@ -109,6 +110,57 @@ function pickOpener(waifu: Waifu) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function SwipeCard({
+  waifu,
+  className = '',
+  style,
+  interactive = false,
+  showPick,
+  showPass,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
+}: {
+  waifu: Waifu;
+  className?: string;
+  style?: CSSProperties;
+  interactive?: boolean;
+  showPick?: boolean;
+  showPass?: boolean;
+  onPointerDown?: (e: PointerEvent<HTMLDivElement>) => void;
+  onPointerMove?: (e: PointerEvent<HTMLDivElement>) => void;
+  onPointerUp?: (e: PointerEvent<HTMLDivElement>) => void;
+  onPointerCancel?: () => void;
+}) {
+  return (
+    <div
+      className={`swipe-card ${className} ${showPick ? 'show-pick' : ''} ${showPass ? 'show-pass' : ''}`}
+      style={{ ...style, ['--card-accent' as any]: waifu.accent }}
+      onPointerDown={interactive ? onPointerDown : undefined}
+      onPointerMove={interactive ? onPointerMove : undefined}
+      onPointerUp={interactive ? onPointerUp : undefined}
+      onPointerCancel={interactive ? onPointerCancel : undefined}
+    >
+      {interactive && (
+        <>
+          <span className="swipe-stamp pick">rizz</span>
+          <span className="swipe-stamp pass">next</span>
+        </>
+      )}
+      <div className="swipe-portrait">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={`/waifu/${waifu.id}/happy.png`} alt={waifu.name} />
+      </div>
+      <div className="swipe-meta">
+        <h2>{waifu.name}</h2>
+        <p>{waifu.tagline}</p>
+        <p className="swipe-quote">{SILLY_QUOTES[waifu.id]}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Page() {
   // null until the user picks a waifu from the catalogue
   const [waifuId, setWaifuId] = useState<string | null>(null);
@@ -122,7 +174,6 @@ export default function Page() {
   const [vaultUnlocked, setVaultUnlocked] = useState(false);
   const [rewardOpen, setRewardOpen] = useState(false);
   const [deckIndex, setDeckIndex] = useState(0);
-  const [deckImgOk, setDeckImgOk] = useState(true);
   const [dragX, setDragX] = useState(0);
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
 
@@ -136,6 +187,7 @@ export default function Page() {
 
   const waifu = getWaifu(waifuId);
   const deckWaifu = WAIFUS[deckIndex % WAIFUS.length];
+  const nextDeckWaifu = WAIFUS[(deckIndex + 1) % WAIFUS.length];
   const imgSrc = `/waifu/${waifu.id}/${emotion}.png`;
   const tier = vaultTier(meter);
 
@@ -189,10 +241,6 @@ export default function Page() {
   useEffect(() => {
     setImgOk(true);
   }, [imgSrc]);
-
-  useEffect(() => {
-    setDeckImgOk(true);
-  }, [deckWaifu.id]);
 
   function setDeckDrag(x: number) {
     dragXRef.current = x;
@@ -298,7 +346,7 @@ export default function Page() {
       if (nextMeter >= 100) unlockVault();
     } catch (e) {
       setEmotion('sad');
-      setLog((l) => [...l, { who: 'her', text: "nooo my brain glitched 🥺 say it again?" }]);
+      setLog((l) => [...l, { who: 'her', text: "my signal tripped over its own shoelaces. send that again?" }]);
     } finally {
       setBusy(false);
       armNudge();
@@ -322,32 +370,23 @@ export default function Page() {
         </header>
 
         <div className="swipe-shell">
-          <div
-            className={`swipe-card ${swipeDir ? `is-${swipeDir}` : ''} ${dragX > 35 ? 'show-pick' : ''} ${dragX < -35 ? 'show-pass' : ''}`}
-            style={{ transform: cardTransform }}
-            onPointerDown={onCardPointerDown}
-            onPointerMove={onCardPointerMove}
-            onPointerUp={onCardPointerUp}
-            onPointerCancel={() => {
-              dragStartX.current = null;
-              setDeckDrag(0);
-            }}
-          >
-            <span className="swipe-stamp pick">rizz</span>
-            <span className="swipe-stamp pass">next</span>
-            <div className="swipe-portrait">
-              {deckImgOk ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={`/waifu/${deckWaifu.id}/happy.png`} alt={deckWaifu.name} onError={() => setDeckImgOk(false)} />
-              ) : (
-                <span className="swipe-emoji">💕</span>
-              )}
-            </div>
-            <div className="swipe-meta">
-              <h2>{deckWaifu.name}</h2>
-              <p>{deckWaifu.tagline}</p>
-              <p className="swipe-quote">{SILLY_QUOTES[deckWaifu.id]}</p>
-            </div>
+          <div className="swipe-stack">
+            <SwipeCard waifu={nextDeckWaifu} className="swipe-card-back" />
+            <SwipeCard
+              waifu={deckWaifu}
+              className={`swipe-card-front ${swipeDir ? `is-${swipeDir}` : ''}`}
+              style={{ transform: cardTransform }}
+              interactive
+              showPick={dragX > 35}
+              showPass={dragX < -35}
+              onPointerDown={onCardPointerDown}
+              onPointerMove={onCardPointerMove}
+              onPointerUp={onCardPointerUp}
+              onPointerCancel={() => {
+                dragStartX.current = null;
+                setDeckDrag(0);
+              }}
+            />
           </div>
 
           <div className="swipe-actions">

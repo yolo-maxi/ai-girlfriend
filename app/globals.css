@@ -289,8 +289,9 @@ html, body {
 .catalogue {
   position: relative;
   isolation: isolate;
+  width: min(100vw, 620px);
+  min-width: 0;
   height: 100dvh;
-  max-width: 620px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -327,10 +328,17 @@ html, body {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-96px, -96px, 0); }
 }
-.cat-head { text-align: center; margin: 8px 0 18px; }
+.cat-head {
+  width: min(100%, 380px);
+  min-width: 0;
+  text-align: center;
+  margin: 8px 0 18px;
+}
 .cat-head h1 {
   margin: 0;
-  font-size: clamp(1.55rem, 4vw, 2.35rem);
+  font-size: clamp(1.45rem, 6vw, 2.2rem);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
   background: linear-gradient(90deg, #ff7eb6, #ff4fd8, #6ec1ff);
   -webkit-background-clip: text;
   background-clip: text;
@@ -339,7 +347,7 @@ html, body {
 .cat-head p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
 .swipe-shell {
   position: relative;
-  width: min(86vw, 390px);
+  width: min(84vw, 360px);
   flex: 1;
   min-height: 0;
   display: flex;
@@ -348,27 +356,43 @@ html, body {
   justify-content: center;
   gap: 18px;
 }
-.swipe-card {
+.swipe-stack {
   position: relative;
   width: 100%;
   aspect-ratio: 0.74;
   max-height: min(66dvh, 540px);
-  border: 1px solid color-mix(in srgb, var(--accent) 44%, white 10%);
+}
+.swipe-card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 44%, white 10%);
   border-radius: 28px;
   overflow: hidden;
   color: var(--text);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 45%),
+    linear-gradient(180deg, color-mix(in srgb, var(--card-accent, var(--accent)) 18%, transparent), transparent 45%),
     rgba(255, 255, 255, 0.07);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
-  cursor: grab;
   touch-action: pan-y;
   user-select: none;
   transition: transform 0.17s ease, border-color 0.17s ease, box-shadow 0.17s ease;
 }
-.swipe-card:active { cursor: grabbing; }
-.swipe-card.is-left,
-.swipe-card.is-right {
+.swipe-card-front {
+  z-index: 2;
+  cursor: grab;
+}
+.swipe-card-front:active { cursor: grabbing; }
+.swipe-card-back {
+  z-index: 1;
+  pointer-events: none;
+  transform: translateY(14px) scale(0.94);
+  opacity: 0.76;
+  filter: saturate(0.9) brightness(0.88);
+}
+.swipe-card-front.is-left,
+.swipe-card-front.is-right {
   transition: transform 0.17s ease-in, opacity 0.17s ease-in;
   opacity: 0.78;
   pointer-events: none;
@@ -376,7 +400,7 @@ html, body {
 .swipe-portrait {
   height: 74%;
   background:
-    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 35%, transparent), transparent),
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--card-accent, var(--accent)) 35%, transparent), transparent),
     rgba(0, 0, 0, 0.25);
   display: grid;
   place-items: center;
@@ -405,7 +429,7 @@ html, body {
 }
 .swipe-meta .swipe-quote {
   margin-top: 10px;
-  color: color-mix(in srgb, var(--accent) 60%, white 30%);
+  color: color-mix(in srgb, var(--card-accent, var(--accent)) 60%, white 30%);
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -477,12 +501,16 @@ html, body {
 @media (max-width: 520px) {
   .catalogue { padding: 18px 14px 22px; }
   .cat-head { margin-bottom: 14px; }
+  .cat-head h1 { font-size: 1.35rem; }
   .cat-head p { font-size: 0.82rem; }
-  .swipe-shell { width: min(92vw, 360px); gap: 14px; }
-  .swipe-card { max-height: 62dvh; border-radius: 24px; }
-  .swipe-meta { padding: 14px 14px 16px; }
-  .swipe-meta h2 { font-size: 1.45rem; }
-  .swipe-meta p { font-size: 0.8rem; }
+  .swipe-shell { width: min(72vw, 280px); gap: 14px; }
+  .swipe-stack { max-height: 62dvh; }
+  .swipe-card { border-radius: 24px; }
+  .swipe-portrait { height: 66%; }
+  .swipe-meta { min-height: 34%; padding: 12px 12px 14px; }
+  .swipe-meta h2 { font-size: 1.3rem; }
+  .swipe-meta p { font-size: 0.76rem; }
+  .swipe-meta .swipe-quote { margin-top: 6px; font-size: 0.72rem; }
   .swipe-action { width: 54px; height: 54px; }
 }
 
