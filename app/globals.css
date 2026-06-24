@@ -146,7 +146,10 @@ html, body {
 }
 
 @media (max-width: 820px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: 44dvh 56dvh; }
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(330px, 43dvh) minmax(0, 1fr);
+  }
 }
 
 /* ---------- Waifu stage ---------- */
@@ -826,17 +829,119 @@ html, body {
 }
 
 @media (max-width: 820px) {
-  .meter {
-    top: 48px;
-    left: 10px;
-    right: 10px;
-    padding: 8px 10px;
+  .stage {
+    justify-content: flex-start;
+    padding: 10px 12px 8px;
+    gap: 7px;
   }
+  .stage::before {
+    background: radial-gradient(72% 52% at 50% 42%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 72%);
+  }
+  .back-btn {
+    top: 10px;
+    left: 12px;
+    padding: 6px 11px;
+    font-size: 0.74rem;
+  }
+  .meter {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    margin-top: 42px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(8, 3, 18, 0.62);
+  }
+  .meter .label { margin-bottom: 5px; }
+  .meter .bar { height: 9px; }
   .meter-copy { font-size: 0.7rem; }
   .vault-keepsake {
-    top: 126px;
+    top: 112px;
     right: 10px;
   }
+  .waifu-wrap {
+    width: min(62vw, 245px);
+    height: min(62vw, 245px);
+    max-height: none;
+    aspect-ratio: 1 / 1;
+  }
+  .waifu-img {
+    animation: none;
+    filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.42));
+  }
+  .namecard {
+    margin-top: 0;
+  }
+  .namecard h1 {
+    font-size: 1.38rem;
+    line-height: 1.05;
+  }
+  .namecard p {
+    font-size: 0.82rem;
+  }
+  .emotion-chip {
+    margin-top: 5px;
+    padding: 2px 9px;
+    font-size: 0.68rem;
+  }
   .rizz-guide { display: none; }
+  .chat {
+    min-height: 0;
+    border-left: 0;
+    border-top: 1px solid var(--panel-br);
+  }
+  .log {
+    padding: 12px 12px 8px;
+    gap: 8px;
+  }
+  .msg {
+    max-width: 86%;
+    padding: 9px 12px;
+    font-size: 0.9rem;
+  }
+  .composer {
+    padding: 9px 12px max(10px, env(safe-area-inset-bottom));
+  }
+  .composer input {
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+  .composer button {
+    flex: 0 0 auto;
+    min-width: 76px;
+    padding: 0 14px;
+  }
   .reward-panel { padding: 18px; }
+}
+
+@media (max-width: 430px) {
+  .app {
+    grid-template-rows: minmax(315px, 41dvh) minmax(0, 1fr);
+  }
+  .meter-copy {
+    display: none;
+  }
+  .waifu-wrap {
+    width: min(50vw, 192px);
+    height: min(50vw, 192px);
+  }
+}
+
+@media (max-height: 700px) and (max-width: 820px) {
+  .app {
+    grid-template-rows: 300px minmax(0, 1fr);
+  }
+  .meter {
+    margin-top: 38px;
+  }
+  .waifu-wrap {
+    width: min(52vw, 185px);
+    height: min(52vw, 185px);
+  }
+  .namecard p {
+    display: none;
+  }
 }
