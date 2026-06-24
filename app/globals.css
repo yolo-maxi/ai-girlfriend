@@ -23,6 +23,120 @@ html, body {
   overflow: hidden;
 }
 
+.login-shell {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.login-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(700px 420px at 50% 15%, rgba(255, 126, 182, 0.24), transparent 70%),
+    radial-gradient(650px 460px at 80% 90%, rgba(94, 214, 255, 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+.login-stars,
+.login-stars::before {
+  position: absolute;
+  inset: -20%;
+  content: '';
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.68) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(255, 126, 182, 0.5) 0 1px, transparent 1.8px);
+  background-size: 82px 82px, 136px 136px;
+  animation: starDrift 18s linear infinite;
+  opacity: 0.36;
+}
+
+.login-stars::before {
+  animation-duration: 28s;
+  opacity: 0.4;
+  transform: rotate(12deg);
+}
+
+.login-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 390px);
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  border: 1px solid var(--panel-br);
+  border-radius: 8px;
+  background: rgba(23, 12, 38, 0.76);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(20px);
+}
+
+.login-kicker {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.login-copy {
+  margin: 0 0 4px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.login-card input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  font: inherit;
+  outline: none;
+}
+
+.login-card input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 126, 182, 0.18);
+}
+
+.login-card button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  color: #1d0f24;
+  background: linear-gradient(135deg, #ff9ed0, #9fe6ff);
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.login-card button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+  opacity: 0.58;
+}
+
+.login-error {
+  margin: 0;
+  color: #ffd1de;
+  font-size: 0.92rem;
+}
+
 .app {
   display: grid;
   grid-template-columns: 1.1fr 1fr;

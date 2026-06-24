@@ -1,42 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Magic-link token gate. Visit /?token=XXX once -> sets HttpOnly cookie -> clean URL.
-// No open site: without a valid cookie/token everything 401s.
-const TOKEN = process.env.ACCESS_TOKEN || '';
+// Password login gate. /api/login sets an opaque HttpOnly session cookie.
+const SESSION_SECRET = process.env.AUTH_SESSION_SECRET || process.env.ACCESS_TOKEN || '';
 const COOKIE = 'aigf_auth';
 
 export const config = {
-  // gate everything except Next internals
+  // Gate everything except Next internals.
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
 
 export function middleware(req: NextRequest) {
-  if (!TOKEN) return NextResponse.next(); // unset = open (dev only)
-
   const url = req.nextUrl;
-  const qToken = url.searchParams.get('token');
+  const pathname = url.pathname;
   const cookie = req.cookies.get(COOKIE)?.value;
+  const isLoginPage = pathname === '/login';
+  const isLoginApi = pathname === '/api/login';
 
-  // valid cookie already
-  if (cookie === TOKEN) return NextResponse.next();
+  if (isLoginApi) return NextResponse.next();
 
-  // magic link: token in query -> set cookie, redirect to clean URL
-  if (qToken === TOKEN) {
-    const clean = url.clone();
-    clean.searchParams.delete('token');
-    const res = NextResponse.redirect(clean);
-    res.cookies.set(COOKIE, TOKEN, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30,
+  if (!SESSION_SECRET) {
+    return new NextResponse('Auth is not configured.', {
+      status: 503,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
     });
-    return res;
   }
 
-  return new NextResponse('🔒 nuh uh~ you need the magic link to meet your waifu', {
-    status: 401,
-    headers: { 'content-type': 'text/plain; charset=utf-8' },
-  });
+  if (cookie === SESSION_SECRET) {
+    if (isLoginPage) return NextResponse.redirect(new URL('/', req.url));
+    return NextResponse.next();
+  }
+
+  if (isLoginPage) return NextResponse.next();
+
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const login = new URL('/login', req.url);
+  login.searchParams.set('next', pathname + url.search);
+  return NextResponse.redirect(login);
 }

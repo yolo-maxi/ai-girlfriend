@@ -2,7 +2,7 @@
 
 A playful anime-waifu rizz game built with Next.js. Pick a waifu, flirt past her defenses, raise the rizz meter, and unlock a kiss-scene reward at 100%.
 
-Live: https://waifu.repo.box (magic-link gated)
+Live: https://waifu.repo.box (password gated)
 
 ## Current App
 
@@ -12,7 +12,7 @@ Live: https://waifu.repo.box (magic-link gated)
 - Emotion-driven stage art: `neutral`, `happy`, `excited`, `blush`, `sad`, `angry`, `jealous`, `surprised`, `pleading`, `smug`, `sexy`, `playful_kiss`.
 - Rizz meter tiers: `Guard up`, `Curious`, `Flustered`, `Won over`.
 - 100% reward uses `sexy` on stage and `playful_kiss` in the unlock modal.
-- Magic-link auth in `middleware.ts`.
+- Password auth in `middleware.ts`, `/login`, and `/api/login`.
 
 ## Environment
 
@@ -28,10 +28,11 @@ Variables:
 VENICE_API_KEY=
 OPENAI_BASE_URL=https://api.venice.ai/api/v1
 CHAT_MODEL=venice-uncensored-role-play
-ACCESS_TOKEN=
+AUTH_PASSWORD=
+AUTH_SESSION_SECRET=
 ```
 
-`ACCESS_TOKEN` enables the magic-link gate. Visit `/?token=<ACCESS_TOKEN>` once to set the auth cookie.
+`AUTH_PASSWORD` is the shared login password. `AUTH_SESSION_SECRET` is an opaque random cookie secret; generate a long random value and do not commit it.
 
 ## Run Locally
 
@@ -75,7 +76,7 @@ Before sharing, verify:
 curl -s -o /dev/null -w '%{http_code}' https://waifu.repo.box/
 ```
 
-Expected unauthenticated response: `401`.
+Expected unauthenticated response: `307` redirect to `/login`. API routes return `401` without a session cookie.
 
 ## Project Layout
 
