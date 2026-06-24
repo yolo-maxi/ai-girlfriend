@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // Generate waifu portraits: every waifu x every emotion, kept in style.
 //
-// Backends (set BACKEND=openai|venice):
+// Backends (set BACKEND=openai):
 //   openai  -> gpt-image-1  (needs OPENAI_API_KEY)            [best consistency]
-//   venice  -> Venice image/generate (needs VENICE_API_KEY)  [no extra key]
+//
+// IMPORTANT: Venice image generation is intentionally disabled. The Venice key
+// is for chat/testing only; do not spend it on image generation again.
 //
 // Usage:
-//   BACKEND=venice VENICE_API_KEY=... node scripts/gen-images.mjs [waifuId...]
 //   BACKEND=openai OPENAI_API_KEY=... node scripts/gen-images.mjs
 //
 // Only generates files that don't already exist (resumable). Pass --force to redo.
@@ -19,7 +20,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const OUT = join(ROOT, 'public', 'waifu');
 
-const BACKEND = (process.env.BACKEND || 'venice').toLowerCase();
+const BACKEND = (process.env.BACKEND || 'disabled').toLowerCase();
 const FORCE = process.argv.includes('--force');
 const onlyIds = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 
@@ -72,6 +73,7 @@ function seedFor(id) {
 async function exists(p) { try { await access(p); return true; } catch { return false; } }
 
 async function genVenice(p, seed) {
+  throw new Error('Venice image generation is disabled for this project. Use Codex image_gen or a non-Venice backend.');
   // Venice proxies OpenAI's gpt-image models, so this uses OpenAI image-gen
   // via the Venice key. gpt-image ignores SD-only params, so keep it minimal.
   const key = process.env.VENICE_API_KEY || process.env.OPENAI_API_KEY;
@@ -113,6 +115,13 @@ async function genOpenAI(p) {
 }
 
 async function main() {
+  if (BACKEND === 'venice' || BACKEND === 'disabled') {
+    throw new Error('Remote Venice image generation is disabled for this project. Use Codex image_gen for new portraits; keep the Venice key for chat only.');
+  }
+  if (BACKEND !== 'openai') {
+    throw new Error(`Unsupported image backend "${BACKEND}". Venice is disabled; only BACKEND=openai is supported by this legacy script.`);
+  }
+
   const list = onlyIds.length ? WAIFUS.filter((w) => onlyIds.includes(w.id)) : WAIFUS;
   let done = 0, skipped = 0, failed = 0;
   const total = list.length * EMOTIONS.length;

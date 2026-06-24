@@ -184,6 +184,24 @@ function freshFallback(meter: number): Reply {
   };
 }
 
+function offlineFallback(lastUser: string): Reply {
+  const score = rizzFloor(lastUser);
+  const t = lastUser.trim().toLowerCase();
+  if (score >= 40) return freshFallback(score);
+  if (/^(what|huh|wait what|what\?)$/.test(t)) {
+    return {
+      say: "my signal did a tiny faceplant, but I'm still here. give me that again and I'll pretend I was graceful.",
+      emotion: 'surprised',
+      secretMeter: score,
+    };
+  }
+  return {
+    say: "my connection hiccuped for a second, but I'm not letting you escape that easily. say it again?",
+    emotion: 'pleading',
+    secretMeter: score,
+  };
+}
+
 function normalize(o: any): Reply {
   const emotion = coerceEmotion(o?.emotion);
   const sayRaw = typeof o?.say === 'string' ? o.say.trim() : '';
@@ -344,9 +362,6 @@ Write a fresh reply to the latest user message instead. Do not reuse the same jo
       secretMeter: Math.max(parsed.secretMeter, rizzFloor(lastUser)),
     });
   } catch (e: any) {
-    return NextResponse.json(
-      { error: 'fetch failed', detail: String(e?.message || e).slice(0, 300) },
-      { status: 502 },
-    );
+    return NextResponse.json(offlineFallback(lastUser));
   }
 }

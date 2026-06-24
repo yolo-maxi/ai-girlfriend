@@ -1,42 +1,87 @@
-# AI Girlfriend 💕 (she keeps NO secrets)
+# AI Girlfriend
 
-A silly, funny anime-waifu chat app. The girlfriend insists "you can trust me, I can keep a secret~" while shamelessly prying for your darkest secrets — and nudges you unprompted when you go quiet.
+A playful anime-waifu rizz game built with Next.js. Pick a waifu, flirt past her defenses, raise the rizz meter, and unlock a kiss-scene reward at 100%.
 
 Live: https://waifu.repo.box (magic-link gated)
 
-## Stack
-- NextJS 14 (app router) + TypeScript, one process serves UI + API.
-- **Chat brain:** any OpenAI-compatible endpoint. Defaults to Venice `venice-uncensored-role-play`. Key is server-side only.
-- **Images:** `gpt-image-1-5` (OpenAI's image model, proxied via Venice). 12 waifus × 10 emotions.
-- **Auth:** magic-link token gate in `middleware.ts`.
+## Current App
 
-## Env (`.env.local`)
+- Tinder-style waifu picker with pass/pick controls.
+- 9 waifus with 12 static emotion portraits each.
+- Chat powered by an OpenAI-compatible endpoint, currently Venice `venice-uncensored-role-play`.
+- Emotion-driven stage art: `neutral`, `happy`, `excited`, `blush`, `sad`, `angry`, `jealous`, `surprised`, `pleading`, `smug`, `sexy`, `playful_kiss`.
+- Rizz meter tiers: `Guard up`, `Curious`, `Flustered`, `Won over`.
+- 100% reward uses `sexy` on stage and `playful_kiss` in the unlock modal.
+- Magic-link auth in `middleware.ts`.
+
+## Environment
+
+Copy `.env.example` to `.env.local`:
+
+```bash
+cp .env.example .env.local
 ```
-VENICE_API_KEY=...            # or OPENAI_API_KEY
+
+Variables:
+
+```bash
+VENICE_API_KEY=
 OPENAI_BASE_URL=https://api.venice.ai/api/v1
 CHAT_MODEL=venice-uncensored-role-play
-ACCESS_TOKEN=...              # magic-link token; unset = open (dev only)
+ACCESS_TOKEN=
 ```
 
-## Run
-```
+`ACCESS_TOKEN` enables the magic-link gate. Visit `/?token=<ACCESS_TOKEN>` once to set the auth cookie.
+
+## Run Locally
+
+```bash
 pnpm install
 pnpm build
-pnpm start            # port 3016
+pnpm start
 ```
 
-## Generate waifu images
-```
-# Resumable: only makes files that don't exist yet. --force to redo.
-BACKEND=venice VENICE_IMAGE_MODEL=gpt-image-1-5 VENICE_API_KEY=... node scripts/gen-images.mjs [waifuId...]
-# or real OpenAI:
-BACKEND=openai OPENAI_API_KEY=... node scripts/gen-images.mjs
-```
-**After generating, restart the server** (`next start` caches `public/` at boot).
+The app serves on port `3016`.
 
-## Layout
-- `lib/waifus.ts` — 12-waifu roster + 10 emotions
-- `lib/personality.ts` — system prompt (the secret-prying bit) + unprompted nudges
-- `app/api/chat/route.ts` — OpenAI-compatible chat proxy, forces JSON `{say, emotion, secretMeter}`
-- `app/page.tsx` — chat UI, emotion swapping, secret meter, idle nudge timer
-- `scripts/gen-images.mjs` — image generator (Venice/OpenAI backends)
+## Images
+
+Portraits live in:
+
+```text
+public/waifu/<waifu-id>/<emotion>.png
+```
+
+Do **not** use the Venice key for image generation. `scripts/gen-images.mjs` refuses default and `BACKEND=venice` runs before any image request.
+
+For new portraits, use Codex `image_gen`, save the PNGs into `public/waifu/<id>/`, optimize them to normal web size, then restart the app because `next start` caches `public/`.
+
+## Deployment
+
+PM2 process:
+
+```bash
+pm2 restart ai-girlfriend --update-env
+```
+
+Public route:
+
+```text
+waifu.repo.box -> Hetzner port 3016
+```
+
+Before sharing, verify:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}' https://waifu.repo.box/
+```
+
+Expected unauthenticated response: `401`.
+
+## Project Layout
+
+- `app/page.tsx` — picker, chat UI, rizz meter, reward modal.
+- `app/api/chat/route.ts` — chat proxy, JSON parsing, fallback handling.
+- `lib/waifus.ts` — roster and emotion list.
+- `lib/personality.ts` — waifu prompt and idle nudges.
+- `public/waifu/` — static portrait assets.
+- `scripts/gen-images.mjs` — legacy image script; Venice image spend is blocked.
