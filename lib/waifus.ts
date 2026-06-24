@@ -36,6 +36,8 @@ export const WAIFUS: Waifu[] = [
   { id: 'nova',    name: 'Nova',    tagline: 'cyberpunk netrunner girlfriend',    vibe: 'cyberpunk hacker, neon visor, choker, emotional-firewall-breaker vibe',          hair: 'neon-magenta undercut',         accent: '#ff4fd8' },
   { id: 'mei',     name: 'Mei',     tagline: 'catgirl maid, suspiciously curious', vibe: 'cat-ear maid, frilly apron, paw gloves, nosey nya',                              hair: 'chocolate brown with cat ears', accent: '#ff8fab' },
   { id: 'shizuku', name: 'Shizuku', tagline: 'goth-lolita princess with dangerous calm', vibe: 'gothic-lolita aristocrat, lace dress, parasol, elegant deadpan teasing, secretly soft', hair: 'long straight black hair',       accent: '#b38cff' },
+  { id: 'hina',    name: 'Hina',    tagline: 'sleepy hoodie gremlin with dangerous honesty', vibe: 'sleepy cozy girl, oversized hoodie blanket, lavender hair, drowsy deadpan flirting', hair: 'fluffy lavender hair',            accent: '#c8a2ff' },
+  { id: 'kaede',   name: 'Kaede',   tagline: 'student-council menace with perfect notes', vibe: 'student-council girl, neat green bob, glasses, ribbon tie, strict but easy to fluster', hair: 'neat green bob with glasses',      accent: '#7de2a8' },
 ];
 
 export const DEFAULT_WAIFU = WAIFUS[0].id;
