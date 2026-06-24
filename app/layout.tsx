@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'AI Girlfriend 💕 (she keeps NO secrets)',
-  description: 'A clingy anime waifu who really, really wants to know your darkest secrets.',
+  title: 'AI Girlfriend 💕 (rizz check)',
+  description: 'A playful anime waifu flirting game where you charm past her defenses.',
   robots: 'noindex',
 };
 

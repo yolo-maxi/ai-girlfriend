@@ -103,20 +103,31 @@ html, body {
 /* ---------- Secret meter ---------- */
 .meter {
   position: absolute;
-  top: 14px;
+  top: 54px;
   left: 14px;
   right: 14px;
   z-index: 3;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-br);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 .meter .label {
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   color: var(--muted);
   display: flex;
   justify-content: space-between;
-  margin-bottom: 4px;
+  gap: 10px;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-weight: 800;
 }
 .meter .bar {
-  height: 10px;
+  height: 12px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.35);
   overflow: hidden;
@@ -126,7 +137,52 @@ html, body {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #ff7eb6, #ff4fd8, #b388ff);
-  transition: width 0.5s ease;
+  transition: width 0.55s cubic-bezier(.2,.8,.2,1), filter 0.25s ease;
+}
+.meter-copy {
+  margin-top: 7px;
+  color: var(--text);
+  opacity: 0.78;
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+.meter.vault-mid {
+  border-color: color-mix(in srgb, var(--accent) 55%, white 10%);
+}
+.meter.vault-mid .fill {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 80%, transparent));
+}
+.meter.vault-high {
+  border-color: color-mix(in srgb, #ff4fd8 70%, white 10%);
+  box-shadow: 0 12px 34px rgba(255, 79, 216, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  animation: vaultPulse 1.8s ease-in-out infinite;
+}
+.meter.vault-open {
+  border-color: #fff;
+  box-shadow: 0 14px 40px rgba(255, 126, 182, 0.35), 0 0 26px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.meter.vault-open .fill {
+  background: linear-gradient(90deg, #fff4a8, #ff7eb6, #6ec1ff);
+}
+@keyframes vaultPulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.vault-keepsake {
+  position: absolute;
+  top: 142px;
+  right: 14px;
+  z-index: 4;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, white 15%);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 }
 
 /* ---------- Chat side ---------- */
@@ -308,3 +364,99 @@ html, body {
   transition: all 0.15s;
 }
 .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- Vault reward ---------- */
+.reward {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(12, 6, 25, 0.62);
+  backdrop-filter: blur(12px);
+  animation: rewardIn 0.22s ease-out;
+}
+.reward-panel {
+  position: relative;
+  width: min(92vw, 420px);
+  padding: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 56%, white 14%);
+  border-radius: 20px;
+  background:
+    radial-gradient(140% 100% at 50% 0%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 58%),
+    rgba(24, 12, 42, 0.95);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 36px color-mix(in srgb, var(--accent) 35%, transparent);
+  text-align: center;
+}
+.reward-kicker {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-weight: 900;
+}
+.reward-panel h2 {
+  margin: 0;
+  font-size: 1.55rem;
+}
+.reward-panel p:not(.reward-kicker) {
+  margin: 10px 0 18px;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+.reward-panel button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #1a0f2e;
+  font-weight: 900;
+  cursor: pointer;
+}
+.reward-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.reward-burst span {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  font-size: 1.25rem;
+  color: #fff;
+  animation: burst 900ms ease-out forwards;
+}
+.reward-burst span:nth-child(1) { transform: rotate(10deg); animation-delay: 0ms; }
+.reward-burst span:nth-child(2) { transform: rotate(70deg); animation-delay: 55ms; }
+.reward-burst span:nth-child(3) { transform: rotate(145deg); animation-delay: 90ms; }
+.reward-burst span:nth-child(4) { transform: rotate(218deg); animation-delay: 120ms; }
+.reward-burst span:nth-child(5) { transform: rotate(300deg); animation-delay: 160ms; }
+@keyframes rewardIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes burst {
+  from { opacity: 0; translate: -50% -50%; scale: 0.5; }
+  30% { opacity: 1; }
+  to { opacity: 0; translate: calc(-50% + 120px) -150px; scale: 1.4; }
+}
+
+@media (max-width: 820px) {
+  .meter {
+    top: 48px;
+    left: 10px;
+    right: 10px;
+    padding: 8px 10px;
+  }
+  .meter-copy { font-size: 0.7rem; }
+  .vault-keepsake {
+    top: 126px;
+    right: 10px;
+  }
+  .reward-panel { padding: 18px; }
+}

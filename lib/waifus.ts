@@ -12,6 +12,8 @@ export const EMOTIONS = [
   'surprised',
   'pleading',
   'smug',
+  'sexy',
+  'playful_kiss',
 ] as const;
 
 export type Emotion = (typeof EMOTIONS)[number];
@@ -30,14 +32,8 @@ export const WAIFUS: Waifu[] = [
   { id: 'yumi',    name: 'Yumi',    tagline: 'your clingy childhood friend',      vibe: 'soft pastel schoolgirl, oversized sweater, hopeless romantic, way too attached', hair: 'long pink twin-tails',          accent: '#ff7eb6' },
   { id: 'rei',     name: 'Rei',     tagline: 'the quiet one who notices everything', vibe: 'calm mysterious kuudere, lab coat over uniform, unsettlingly perceptive',         hair: 'short ice-blue bob',            accent: '#6ec1ff' },
   { id: 'akari',   name: 'Akari',   tagline: 'chaotic gremlin energy',            vibe: 'genki orange-haired tomboy, hoodie, fingerless gloves, gremlin smile',           hair: 'messy orange ponytail',         accent: '#ff9f43' },
-  { id: 'momo',    name: 'Momo',    tagline: 'the gyaru who wants ALL the gossip', vibe: 'tanned gyaru, heart hairpins, gossip-hungry, dramatic',                          hair: 'curly platinum-blonde',         accent: '#ffd93d' },
-  { id: 'shizuku', name: 'Shizuku', tagline: 'gothic and a little obsessed',      vibe: 'gothic lolita, lace, parasol, sweetly possessive yandere undertones',           hair: 'long straight black',           accent: '#b388ff' },
-  { id: 'hina',    name: 'Hina',    tagline: 'sleepy and emotionally honest',     vibe: 'sleepy lavender-haired girl, hoodie blanket, dreamy, blurts secrets',            hair: 'fluffy lavender',               accent: '#c5a3ff' },
-  { id: 'kaede',   name: 'Kaede',   tagline: 'student council, secretly nosey',   vibe: 'prim student-council president, glasses, ribbon tie, prying disguised as caring', hair: 'neat green bob',                accent: '#5ad19a' },
-  { id: 'luna',    name: 'Luna',    tagline: 'idol smile, scary commitment',      vibe: 'pop-idol outfit, microphone, sparkles, parasocial menace',                       hair: 'pastel-blue long curls',        accent: '#73e0ff' },
-  { id: 'tsumugi', name: 'Tsumugi', tagline: 'shrine maiden who reads your fate', vibe: 'red-and-white miko shrine maiden, ofuda charms, mystic, gently coercive',         hair: 'long crimson',                  accent: '#ff6b6b' },
-  { id: 'nova',    name: 'Nova',    tagline: 'cyberpunk netrunner girlfriend',    vibe: 'cyberpunk hacker, neon visor, choker, downloads-your-secrets vibe',               hair: 'neon-magenta undercut',         accent: '#ff4fd8' },
-  { id: 'sora',    name: 'Sora',    tagline: 'angel who keeps no secrets safe',   vibe: 'pastel angel, tiny halo, feather wings, deceptively innocent',                    hair: 'pale gold wavy',                accent: '#ffe08a' },
+  { id: 'momo',    name: 'Momo',    tagline: 'the gyaru who wants ALL the attention', vibe: 'tanned gyaru, heart hairpins, dramatic, flirts like a sport',                  hair: 'curly platinum-blonde',         accent: '#ffd93d' },
+  { id: 'nova',    name: 'Nova',    tagline: 'cyberpunk netrunner girlfriend',    vibe: 'cyberpunk hacker, neon visor, choker, emotional-firewall-breaker vibe',          hair: 'neon-magenta undercut',         accent: '#ff4fd8' },
   { id: 'mei',     name: 'Mei',     tagline: 'catgirl maid, suspiciously curious', vibe: 'cat-ear maid, frilly apron, paw gloves, nosey nya',                              hair: 'chocolate brown with cat ears', accent: '#ff8fab' },
 ];
 
