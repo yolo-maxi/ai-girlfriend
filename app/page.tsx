@@ -306,18 +306,24 @@ export default function Page() {
 
   function onCardPointerDown(e: PointerEvent<HTMLDivElement>) {
     if (deckBusy || Date.now() < deckLockedUntil.current) return;
+    e.preventDefault();
+    e.stopPropagation();
     dragStartX.current = e.clientX;
     e.currentTarget.setPointerCapture(e.pointerId);
   }
 
   function onCardPointerMove(e: PointerEvent<HTMLDivElement>) {
     if (dragStartX.current == null || deckBusy) return;
+    e.preventDefault();
+    e.stopPropagation();
     const nextX = Math.max(-140, Math.min(140, e.clientX - dragStartX.current));
     setDeckDrag(nextX);
   }
 
   function onCardPointerUp(e: PointerEvent<HTMLDivElement>) {
     if (dragStartX.current == null) return;
+    e.preventDefault();
+    e.stopPropagation();
     dragStartX.current = null;
     e.currentTarget.releasePointerCapture(e.pointerId);
     const finalX = dragXRef.current;
@@ -406,8 +412,15 @@ export default function Page() {
 
         <div className="swipe-shell">
           <div className="swipe-stack">
-            {!exitingCard && <SwipeCard waifu={nextDeckWaifu} className="swipe-card-back" />}
+            {!exitingCard && (
+              <SwipeCard
+                key={`back-${(deckIndex + 1) % WAIFUS.length}`}
+                waifu={nextDeckWaifu}
+                className="swipe-card-back"
+              />
+            )}
             <SwipeCard
+              key={`front-${deckIndex % WAIFUS.length}`}
               waifu={deckWaifu}
               className={exitingCard ? 'swipe-card-ready' : 'swipe-card-front'}
               style={{ transform: exitingCard ? undefined : frontTransform }}
@@ -424,6 +437,7 @@ export default function Page() {
             />
             {exitingCard && exitingWaifu && (
               <SwipeCard
+                key={`front-${exitingCard.index % WAIFUS.length}`}
                 waifu={exitingWaifu}
                 className={`swipe-card-front swipe-card-exiting is-${exitingCard.dir}`}
                 style={{ transform: exitingTransform }}
