@@ -184,6 +184,62 @@ html, body {
   backdrop-filter: blur(8px);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 }
+.rizz-guide {
+  position: absolute;
+  top: 144px;
+  left: 14px;
+  z-index: 4;
+  width: min(280px, calc(100% - 28px));
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, white 10%);
+  border-radius: 16px;
+  background: rgba(7, 3, 18, 0.58);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+}
+.rizz-kicker {
+  margin: 0 0 3px;
+  color: color-mix(in srgb, var(--accent) 62%, white 24%);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.rizz-guide h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+.rizz-guide p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.28;
+}
+.rizz-examples {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.rizz-examples button {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--panel-br);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.74rem;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.rizz-examples button:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, white 15%);
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.08));
+  transform: translateY(-1px);
+}
 
 /* ---------- Chat side ---------- */
 .chat {
@@ -641,5 +697,6 @@ html, body {
     top: 126px;
     right: 10px;
   }
+  .rizz-guide { display: none; }
   .reward-panel { padding: 18px; }
 }

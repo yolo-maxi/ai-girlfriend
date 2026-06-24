@@ -68,6 +68,13 @@ const SILLY_QUOTES: Record<string, string> = {
   shizuku: '"My parasol is for shade and emotional distance."',
 };
 
+const RIZZ_EXAMPLES = [
+  "I picked you because that smile looks like trouble.",
+  "You can pretend you're hard to impress, but I saw that blush.",
+  "Tell me what would make you smile for real.",
+  "I'm not here to win fast. I'm here to make you forget the game.",
+];
+
 const VAULT_TIERS = [
   {
     min: 0,
@@ -178,6 +185,7 @@ export default function Page() {
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
 
   const logRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nudgeIdx = useRef(0);
   const nudgeCount = useRef(0); // consecutive unprompted nudges since last user reply
@@ -317,6 +325,11 @@ export default function Page() {
     setHistory((h) => [...h, { role: 'assistant', content: reward }]);
   }
 
+  function useExample(text: string) {
+    setInput(text);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }
+
   async function send() {
     const text = input.trim();
     if (!text || busy) return;
@@ -418,6 +431,19 @@ export default function Page() {
           </button>
         )}
 
+        <aside className="rizz-guide" aria-label="How to play">
+          <p className="rizz-kicker">how to play</p>
+          <h2>Rizz her up</h2>
+          <p>Be specific, tease lightly, or ask something that sounds like you actually noticed her.</p>
+          <div className="rizz-examples">
+            {RIZZ_EXAMPLES.map((example) => (
+              <button key={example} onClick={() => useExample(example)}>
+                {example}
+              </button>
+            ))}
+          </div>
+        </aside>
+
         <div className="waifu-wrap">
           {imgOk ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -477,6 +503,7 @@ export default function Page() {
 
         <div className="composer">
           <input
+            ref={inputRef}
             value={input}
             placeholder="say something charming..."
             onChange={(e) => setInput(e.target.value)}
