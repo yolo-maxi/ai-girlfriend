@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'AI Girlfriend 💕 (rizz check)',
-  description: 'A playful anime waifu flirting game where you charm past her defenses.',
+  description: "attestWaifu, the first ai girlfriend that won't cheat on you by sharing your data",
   robots: 'noindex',
 };
 

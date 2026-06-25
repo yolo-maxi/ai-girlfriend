@@ -1,6 +1,6 @@
 # AI Girlfriend
 
-A playful anime-waifu rizz game built with Next.js. Pick a waifu, flirt past her defenses, raise the rizz meter, and unlock a kiss-scene reward at 100%.
+attestWaifu, the first ai girlfriend that won't cheat on you by sharing your data.
 
 Live: https://waifu.repo.box (password gated)
 

@@ -410,7 +410,7 @@ export default function Page() {
       <div className="catalogue" style={{ ['--accent' as any]: deckWaifu.accent }}>
         <header className="cat-head">
           <h1>pick your girlfriend 💕</h1>
-          <p>find the one whose defenses you want to ruin.</p>
+          <p>attestWaifu, the first ai girlfriend that won't cheat on you by sharing your data</p>
         </header>
 
         <div className="swipe-shell">
