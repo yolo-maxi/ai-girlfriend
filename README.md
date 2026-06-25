@@ -8,7 +8,7 @@ Live: https://waifu.repo.box (password gated)
 
 - Tinder-style waifu picker with pass/pick controls.
 - 9 waifus with 12 static emotion portraits each.
-- Chat powered by an OpenAI-compatible endpoint, currently Venice `venice-uncensored-role-play`.
+- Chat powered by an OpenAI-compatible endpoint.
 - Emotion-driven stage art: `neutral`, `happy`, `excited`, `blush`, `sad`, `angry`, `jealous`, `surprised`, `pleading`, `smug`, `sexy`, `playful_kiss`.
 - Rizz meter tiers: `Guard up`, `Curious`, `Flustered`, `Won over`.
 - 100% reward uses `sexy` on stage and `playful_kiss` in the unlock modal.
@@ -25,14 +25,14 @@ cp .env.example .env.local
 Variables:
 
 ```bash
-VENICE_API_KEY=
-OPENAI_BASE_URL=https://api.venice.ai/api/v1
-CHAT_MODEL=venice-uncensored-role-play
+OPENAI_COMPATIBLE_KEY=
+OPENAI_COMPATIBLE_BASE_URL=https://api.openai.com/v1
+OPENAI_COMPATIBLE_MODEL=gpt-4o-mini
 AUTH_PASSWORD=
 AUTH_SESSION_SECRET=
 ```
 
-`AUTH_PASSWORD` is the shared login password. `AUTH_SESSION_SECRET` is an opaque random cookie secret; generate a long random value and do not commit it.
+`OPENAI_COMPATIBLE_KEY` is the server-side chat API key. `AUTH_PASSWORD` is the shared login password. `AUTH_SESSION_SECRET` is an opaque random cookie secret; generate a long random value and do not commit it.
 
 ## Run Locally
 
@@ -50,11 +50,10 @@ Portraits live in:
 
 ```text
 public/waifu/<waifu-id>/<emotion>.png
+public/waifu/<waifu-id>/<emotion>.webp
 ```
 
-Do **not** use the Venice key for image generation. `scripts/gen-images.mjs` refuses default and `BACKEND=venice` runs before any image request.
-
-For new portraits, use Codex `image_gen`, save the PNGs into `public/waifu/<id>/`, optimize them to normal web size, then restart the app because `next start` caches `public/`.
+The app serves WebP first with PNG fallback. For new portraits, use Codex `image_gen`, save the PNGs into `public/waifu/<id>/`, generate matching WebP files, then restart the app because `next start` caches `public/`.
 
 ## Deployment
 
@@ -85,4 +84,3 @@ Expected unauthenticated response: `307` redirect to `/login`. API routes return
 - `lib/waifus.ts` — roster and emotion list.
 - `lib/personality.ts` — waifu prompt and idle nudges.
 - `public/waifu/` — static portrait assets.
-- `scripts/gen-images.mjs` — legacy image script; Venice image spend is blocked.
