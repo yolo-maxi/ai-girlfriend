@@ -12,6 +12,10 @@ const EMOTION_EMOJI: Record<string, string> = {
   sexy: '😍', playful_kiss: '😘',
 };
 
+function waifuImage(id: string, emotion: string, ext: 'webp' | 'png') {
+  return `/waifu/${id}/${emotion}.${ext}`;
+}
+
 const BASE_OPENERS = [
   "you made it. I was two seconds away from inventing drama without you. what's the actual vibe today?",
   "okay, status check: are we in cozy mode, chaos mode, or tiny crisis mode?",
@@ -167,7 +171,10 @@ function SwipeCard({
       )}
       <div className="swipe-portrait">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/waifu/${waifu.id}/happy.png`} alt={waifu.name} />
+        <picture>
+          <source srcSet={waifuImage(waifu.id, 'happy', 'webp')} type="image/webp" />
+          <img src={waifuImage(waifu.id, 'happy', 'png')} alt={waifu.name} />
+        </picture>
       </div>
       <div className="swipe-meta">
         <h2>{waifu.name}</h2>
@@ -207,7 +214,8 @@ export default function Page() {
   const deckWaifu = WAIFUS[deckIndex % WAIFUS.length];
   const nextDeckWaifu = WAIFUS[(deckIndex + 1) % WAIFUS.length];
   const deckBusy = !!exitingCard;
-  const imgSrc = `/waifu/${waifu.id}/${emotion}.png`;
+  const imgSrc = waifuImage(waifu.id, emotion, 'png');
+  const imgWebpSrc = waifuImage(waifu.id, emotion, 'webp');
   const tier = vaultTier(meter);
 
   const scrollDown = useCallback(() => {
@@ -487,13 +495,15 @@ export default function Page() {
         <div className="waifu-wrap">
           {imgOk ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={imgSrc}
-              className="waifu-img"
-              src={imgSrc}
-              alt={`${waifu.name} feeling ${emotion}`}
-              onError={() => setImgOk(false)}
-            />
+            <picture key={imgSrc} className="waifu-picture">
+              <source srcSet={imgWebpSrc} type="image/webp" />
+              <img
+                className="waifu-img"
+                src={imgSrc}
+                alt={`${waifu.name} feeling ${emotion}`}
+                onError={() => setImgOk(false)}
+              />
+            </picture>
           ) : (
             <div className="waifu-img placeholder" title="image not generated yet">
               {EMOTION_EMOJI[emotion] || '💕'}
@@ -518,7 +528,10 @@ export default function Page() {
             <h2 id="reward-title">Kiss scene with {waifu.name}</h2>
             <div className="reward-portrait">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/waifu/${waifu.id}/playful_kiss.png`} alt={`${waifu.name} kiss reward`} />
+              <picture>
+                <source srcSet={waifuImage(waifu.id, 'playful_kiss', 'webp')} type="image/webp" />
+                <img src={waifuImage(waifu.id, 'playful_kiss', 'png')} alt={`${waifu.name} kiss reward`} />
+              </picture>
             </div>
             <p>
               She tries to play it cool, fails instantly, and lets the flirty version of her
