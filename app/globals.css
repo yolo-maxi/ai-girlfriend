@@ -310,13 +310,13 @@ html, body {
 }
 .rizz-guide {
   position: absolute;
-  top: 144px;
+  top: 126px;
   left: 14px;
+  right: 14px;
   z-index: 4;
-  width: clamp(190px, 25vw, 250px);
-  max-width: calc(100% - 28px);
-  max-height: min(44dvh, calc(100% - 172px));
-  padding: 10px;
+  width: auto;
+  max-height: 106px;
+  padding: 9px;
   border: 1px solid color-mix(in srgb, var(--accent) 34%, white 10%);
   border-radius: 12px;
   background: rgba(7, 3, 18, 0.58);
@@ -334,36 +334,39 @@ html, body {
 }
 .rizz-guide h2 {
   margin: 0;
-  font-size: 0.96rem;
+  font-size: 0.9rem;
   line-height: 1.1;
 }
 .rizz-guide p {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: 0.72rem;
-  line-height: 1.28;
+  font-size: 0.68rem;
+  line-height: 1.18;
+  max-width: 44rem;
 }
 .rizz-examples {
-  display: grid;
+  display: flex;
   gap: 6px;
-  margin-top: 10px;
-  max-height: min(22dvh, 156px);
-  overflow-y: auto;
+  margin-top: 8px;
+  max-height: 38px;
+  overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior: contain;
-  padding-right: 2px;
+  padding: 0 0 2px;
   scrollbar-width: thin;
 }
 .rizz-examples button {
-  width: 100%;
+  flex: 0 0 min(235px, 78vw);
   min-width: 0;
-  padding: 7px 8px;
+  min-height: 34px;
+  padding: 5px 8px;
   border: 1px solid var(--panel-br);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   font: inherit;
-  font-size: 0.7rem;
-  line-height: 1.25;
+  font-size: 0.66rem;
+  line-height: 1.15;
   text-align: left;
   cursor: pointer;
   overflow-wrap: anywhere;
