@@ -77,11 +77,26 @@ const SILLY_QUOTES: Record<string, string> = {
   hina: '"Emotionally available after a 14-hour nap."',
 };
 
+const RIZZ_HINT_STORAGE_KEY = 'attestwaifu.usedRizzHints.v1';
+const RIZZ_HINT_COUNT = 3;
+
 const RIZZ_EXAMPLES = [
   "I picked you because that smile looks like trouble.",
   "You can pretend you're hard to impress, but I saw that blush.",
   "Tell me what would make you smile for real.",
   "I'm not here to win fast. I'm here to make you forget the game.",
+  "That little pout is dangerous. Are you always this hard to ignore?",
+  "I like the shy act, but I think you know exactly what you're doing.",
+  "If I had one guess, your real smile is worse for my health.",
+  "You look like you want a compliment but you'd pretend it didn't work.",
+  "What's the quickest way to make you accidentally honest?",
+  "I don't need easy. I want the version of you nobody else gets.",
+  "You're cute when you're suspicious of compliments.",
+  "I'll behave if you blush first.",
+  "Tell me one thing you wish someone noticed about you.",
+  "You can keep acting unimpressed. I'm patient.",
+  "I came prepared: one sincere compliment and one terrible excuse to stay.",
+  "If I make you laugh, you owe me one real answer.",
 ];
 
 const VAULT_TIERS = [
@@ -200,6 +215,7 @@ export default function Page() {
   const [deckIndex, setDeckIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [exitingCard, setExitingCard] = useState<ExitingCard | null>(null);
+  const [usedRizzHints, setUsedRizzHints] = useState<string[]>([]);
 
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -268,6 +284,19 @@ export default function Page() {
   useEffect(() => {
     setImgOk(true);
   }, [imgSrc]);
+
+  useEffect(() => {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(RIZZ_HINT_STORAGE_KEY) || '[]');
+      if (Array.isArray(parsed)) {
+        setUsedRizzHints(parsed.filter((hint): hint is string => typeof hint === 'string'));
+      }
+    } catch {
+      window.localStorage.removeItem(RIZZ_HINT_STORAGE_KEY);
+    }
+  }, []);
+
+  const visibleRizzHints = RIZZ_EXAMPLES.filter((hint) => !usedRizzHints.includes(hint)).slice(0, RIZZ_HINT_COUNT);
 
   function setDeckDrag(x: number) {
     dragXRef.current = x;
@@ -358,6 +387,11 @@ export default function Page() {
 
   function useExample(text: string) {
     setInput(text);
+    setUsedRizzHints((used) => {
+      const next = used.includes(text) ? used : [...used, text];
+      window.localStorage.setItem(RIZZ_HINT_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
     requestAnimationFrame(() => inputRef.current?.focus());
   }
 
@@ -484,11 +518,21 @@ export default function Page() {
           <h2>Rizz her up</h2>
           <p>Be specific, tease lightly, or ask something that sounds like you actually noticed her.</p>
           <div className="rizz-examples">
-            {RIZZ_EXAMPLES.map((example) => (
+            {visibleRizzHints.map((example) => (
               <button key={example} onClick={() => useExample(example)}>
                 {example}
               </button>
             ))}
+            {visibleRizzHints.length === 0 && (
+              <button
+                onClick={() => {
+                  window.localStorage.removeItem(RIZZ_HINT_STORAGE_KEY);
+                  setUsedRizzHints([]);
+                }}
+              >
+                You used every hint. Tap to refresh the deck.
+              </button>
+            )}
           </div>
         </aside>
 
