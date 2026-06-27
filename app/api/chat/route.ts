@@ -110,6 +110,28 @@ function buildContinuityPrompt(lastUser: string, recentUserContext: string): str
 - Keep the output JSON schema exactly as requested.`;
 }
 
+function isLowEffortReply(s: string): boolean {
+  const text = s.trim().toLowerCase();
+  if (!text) return false;
+  if (/\b(sad|tired|anxious|sick|hurt|depressed|crying|upset|exhausted|stressed|scared|panic|bad day)\b/.test(text)) {
+    return false;
+  }
+  const plain = text.replace(/[^\p{L}\p{N}\s]/gu, '').trim();
+  const words = plain ? plain.split(/\s+/) : [];
+  return (
+    words.length <= 2 ||
+    /^(k|kk|ok|okay|yes|yeah|yep|yea|no|nah|idk|maybe|lol|lmao|haha|hmm|sure|fine|cool|nice|what|why)$/i.test(plain)
+  );
+}
+
+function buildLowEffortPrompt(lastUser: string): string {
+  return `The latest user reply is very short or dry: ${JSON.stringify(lastUser.slice(0, 120))}.
+- Tease them affectionately for giving you so little to work with, as if you like them and want more attention.
+- Good vibe: "what's wrong, don't you like me?", "wow, starving me on one-word replies now?", "blink twice if I'm boring you."
+- Do not be cruel, needy in a serious way, or repetitive. Keep it playful, flirty, and character-specific.
+- Still answer/reply to the actual message if it contains any meaning.`;
+}
+
 function wordSet(s: string): Set<string> {
   return new Set(
     s
@@ -303,6 +325,7 @@ export async function POST(req: NextRequest) {
       { role: 'system', content: buildSystemPrompt(waifu) },
       ...history,
       { role: 'system', content: buildContinuityPrompt(lastUser, recentUserContext) },
+      ...(isLowEffortReply(lastUser) ? [{ role: 'system', content: buildLowEffortPrompt(lastUser) }] : []),
   ];
 
   async function complete(messages: typeof baseMessages) {
