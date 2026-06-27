@@ -240,6 +240,10 @@ export default function Page() {
     });
   }, []);
 
+  const focusComposer = useCallback(() => {
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
+
   // --- unprompted prodding: she nudges when you go quiet, capped at MAX_NUDGES ---
   const armNudge = useCallback(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
@@ -392,13 +396,17 @@ export default function Page() {
       window.localStorage.setItem(RIZZ_HINT_STORAGE_KEY, JSON.stringify(next));
       return next;
     });
-    requestAnimationFrame(() => inputRef.current?.focus());
+    focusComposer();
   }
 
   async function send() {
     const text = input.trim();
-    if (!text || busy) return;
+    if (!text || busy) {
+      focusComposer();
+      return;
+    }
     setInput('');
+    focusComposer();
     setLog((l) => [...l, { who: 'me', text }]);
     const nextHist: ChatMsg[] = [...history, { role: 'user', content: text }];
     setHistory(nextHist);
@@ -429,6 +437,7 @@ export default function Page() {
       setBusy(false);
       armNudge();
       scrollDown();
+      focusComposer();
     }
   }
 
@@ -604,10 +613,21 @@ export default function Page() {
             value={input}
             placeholder="say something charming..."
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && send()}
-            disabled={busy}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                send();
+              }
+            }}
+            aria-disabled={busy}
           />
-          <button onClick={send} disabled={busy || !input.trim()}>send 💌</button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={send}
+            disabled={busy || !input.trim()}
+          >
+            send 💌
+          </button>
         </div>
       </section>
     </div>
