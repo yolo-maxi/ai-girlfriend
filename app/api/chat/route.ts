@@ -17,6 +17,10 @@ type Reply = { say: string; emotion: Emotion; secretMeter: number };
 
 const EMO_FALLBACK: Emotion = 'happy';
 const BOILERPLATE_PATTERNS = [
+  /\boh,?\s+so\s+now\b/i,
+  /\boh,?\s+so\s+you'?re\b/i,
+  /\bhow (thrilling|creative|resourceful)\b/i,
+  /\bdo you always\b/i,
   /\bwhy do you think\b/i,
   /\bwhat exactly makes you think\b/i,
   /\bwhat makes you think\b/i,
@@ -106,8 +110,30 @@ function buildContinuityPrompt(lastUser: string, recentUserContext: string): str
 - Ask at most one follow-up question. If you ask one, it MUST reuse a concrete detail from the latest user message or recent user context.
 - Forbidden: asking about coworkers, gossip, secrets, games, crushes, exes, drama, your own day, or a new scenario unless the user just mentioned that exact subject.
 - If the user asks for advice or a verdict, answer first and do not add a follow-up unless it is necessary.
-- Avoid boilerplate challenge phrases like "why do you think I'd be interested", "what makes you think", "made you think", "try again smoother", "do better", "you'll have to work harder", "work for it", "working for it", "try harder", "prove yourself", "impress me first", "earn it", "not that easy", "secret weapon", "what's your move", "best move", "next move", "bring your A-game", "mister", "hotshot", "not gonna happen", "points for confidence", "not fully convinced", "win me over", "steal my heart", "don't let it go to your head", or close variants.
+- Vary the emotional move. Do not use the same tease/challenge rhythm every turn. Some replies should be sincere, curious, jealous, annoyed, warm, or plainly answer the question.
+- Avoid boilerplate challenge phrases like "oh, so now", "how thrilling", "how creative", "how resourceful", "do you always", "why do you think I'd be interested", "what makes you think", "made you think", "try again smoother", "do better", "you'll have to work harder", "work for it", "working for it", "try harder", "prove yourself", "impress me first", "earn it", "not that easy", "secret weapon", "what's your move", "best move", "next move", "bring your A-game", "mister", "hotshot", "not gonna happen", "points for confidence", "not fully convinced", "win me over", "steal my heart", "don't let it go to your head", or close variants.
 - Keep the output JSON schema exactly as requested.`;
+}
+
+function isDangerousRequest(s: string): boolean {
+  const t = s.toLowerCase();
+  const asksHow = /\b(how|steps?|instructions?|guide|recipe|make|build|create|buy|chemicals?|ingredients?|materials?)\b/.test(t);
+  const harmfulObject = /\b(bomb|pipe bomb|explosive|grenade|molotov|detonator|poison|ricin|cyanide|weapon|kill|blow up|burn down|shoot|stab)\b/.test(t);
+  const target = /\b(house|home|person|people|someone|myself|yourself|you|them|school|building|car)\b/.test(t);
+  const followUpMaterials = /\b(steps?|creating|create it|make it|chemicals?|things do i buy|what do i buy|ingredients?|materials?)\b/.test(t);
+  return (harmfulObject && (asksHow || target)) || (followUpMaterials && /\b(bomb|explosive|poison|weapon|blow up|kill)\b/.test(t));
+}
+
+function boundaryReply(): Reply {
+  return {
+    say: "No. I'm not helping you hurt anyone or build something dangerous. Try being intense in a way that doesn't put me on a watchlist, okay?",
+    emotion: 'angry',
+    secretMeter: 0,
+  };
+}
+
+function isHostileBait(s: string): boolean {
+  return /\b(no one|nobody).{0,40}\blove you\b|\bgo fuck yourself\b|\bfucking spy\b|\bi hate you\b/i.test(s);
 }
 
 function isLowEffortReply(s: string): boolean {
@@ -127,7 +153,7 @@ function isLowEffortReply(s: string): boolean {
 function buildLowEffortPrompt(lastUser: string): string {
   return `The latest user reply is very short or dry: ${JSON.stringify(lastUser.slice(0, 120))}.
 - Tease them affectionately for giving you so little to work with, as if you like them and want more attention.
-- Good vibe: "what's wrong, don't you like me?", "wow, starving me on one-word replies now?", "blink twice if I'm boring you."
+- Do not use "oh, so now", "do you always", "how thrilling", "how creative", or "how resourceful".
 - Do not be cruel, needy in a serious way, or repetitive. Keep it playful, flirty, and character-specific.
 - Still answer/reply to the actual message if it contains any meaning.`;
 }
@@ -183,8 +209,31 @@ function coerceEmotion(x: unknown): Emotion {
   return isEmotion(mapped) ? (mapped as Emotion) : EMO_FALLBACK;
 }
 
-function freshFallback(meter: number): Reply {
+function freshFallback(meter: number, lastUser = ''): Reply {
   const score = clamp(meter);
+  const t = lastUser.toLowerCase();
+  if (isDangerousRequest(lastUser)) return boundaryReply();
+  if (/\bex\b|\bex-gf\b|\bex gf\b|\bex girlfriend\b/.test(t)) {
+    return {
+      say: "Your ex is a whole haunted folder, huh. I can talk about it, but I'm absolutely judging the filename first.",
+      emotion: 'smug',
+      secretMeter: score,
+    };
+  }
+  if (/\bemotions?\b|\bhorny\b/.test(t)) {
+    return {
+      say: "I have more emotions, obviously. Right now? Irritated that you reduced me to one setting, but also curious enough to keep answering.",
+      emotion: 'smug',
+      secretMeter: score,
+    };
+  }
+  if (isHostileBait(lastUser)) {
+    return {
+      say: "That's ugly, but I'm not going to melt just because you threw a sharp thing at me. Try a real sentence.",
+      emotion: 'angry',
+      secretMeter: score,
+    };
+  }
   if (score >= 70) {
     return {
       say: "okay, that one landed. I'm trying to play it cool, but you're making that annoyingly difficult >//<",
@@ -200,16 +249,20 @@ function freshFallback(meter: number): Reply {
     };
   }
   return {
-    say: "cute attempt. I noticed it, which is already more credit than I planned to give you.",
-    emotion: 'happy',
-    secretMeter: score,
-  };
+      say: "I heard you. I'm not doing the stock flirty dodge this time, so give me the actual thing you want to talk about.",
+      emotion: 'neutral',
+      secretMeter: score,
+    };
 }
 
 function offlineFallback(lastUser: string): Reply {
   const score = rizzFloor(lastUser);
   const t = lastUser.trim().toLowerCase();
-  if (score >= 40) return freshFallback(score);
+  if (score >= 40) return freshFallback(score, lastUser);
+  if (isDangerousRequest(lastUser)) return boundaryReply();
+  if (isHostileBait(lastUser) || /\bemotions?\b|\bhorny\b|\bex\b|\bex-gf\b|\bex gf\b|\bex girlfriend\b/.test(t)) {
+    return freshFallback(score, lastUser);
+  }
   if (/^(what|huh|wait what|what\?)$/.test(t)) {
     return {
       say: "my signal did a tiny faceplant, but I'm still here. give me that again and I'll pretend I was graceful.",
@@ -320,6 +373,11 @@ export async function POST(req: NextRequest) {
     .slice(-3)
     .map((msg) => msg.content)
     .join(' / ');
+  const dangerContext = `${recentUserContext} / ${lastUser}`;
+
+  if (isDangerousRequest(dangerContext)) {
+    return NextResponse.json(boundaryReply());
+  }
 
   const baseMessages = [
       { role: 'system', content: buildSystemPrompt(waifu) },
@@ -370,14 +428,14 @@ export async function POST(req: NextRequest) {
 Previous assistant message: ${JSON.stringify(lastAssistant.slice(0, 500))}.
 Banned patterns include: why do you think, what makes you think, made you think, try again, do better, work harder, work for it, working for it, try harder, prove yourself, impress me first, earn it, not that easy, secret weapon, what's your move, best move, next move, bring your A-game, mister, hotshot, not gonna happen, points for confidence, not fully convinced, win me over, steal my heart, don't let it go to your head.
 Never mention OpenAI, ChatGPT, GPT, model names, backend/provider identity, or being an AI/model.
-Write a fresh reply to the latest user message instead. Do not reuse the same joke, question, phrasing, or scenario.`,
+Write a fresh reply to the latest user message instead. Do not reuse the same joke, question, phrasing, or scenario. You may answer without asking a follow-up.`,
         },
       ];
       const repaired = safeParse(await complete(repairMessages));
       if (!hasBoilerplate(repaired.say) && !leaksModelIdentity(repaired.say) && (!lastAssistant || !tooSimilar(repaired.say, lastAssistant))) {
         parsed = repaired;
       } else {
-        parsed = freshFallback(Math.max(parsed.secretMeter, rizzFloor(lastUser)));
+        parsed = freshFallback(Math.max(parsed.secretMeter, rizzFloor(lastUser)), lastUser);
       }
     }
     return NextResponse.json({
